@@ -1,0 +1,159 @@
+#################################################################
+# P_O only one column ocean with per cell O2_utiliaztion
+#################################################################
+model1:
+    parameters:
+        CIsotope: ScalarData
+        constant_P: False
+        constant_O: False
+       
+    domains:        
+
+        fluxAtoLand:
+            
+            reactions:               
+                target:
+                    class: ReactionFluxTarget
+                    parameters:
+                        fluxlist: ["O2", "CO2::CIsotope"]   
+
+        # fluxRtoOcean:
+            
+        #     reactions:
+        #         target:
+        #             class: ReactionFluxTarget                   
+        #             parameters:                        
+        #                 fluxlist: ["P"]
+
+        fluxOceanBurial:
+            
+            reactions:
+                target:
+                    class: ReactionFluxTarget
+                    parameters:
+                        flux_totals: true
+                        fluxlist: ["Corg::CIsotope", "P"]
+                                       
+                        
+        global:
+            # scalar domain
+            
+            reactions:    
+                Ppulse:
+                    class: ReactionFluxPerturb
+                    parameters:
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [0.0, 0.0]
+
+                    variable_links:
+                        F: ocean.P_sms
+                        FApplied: Ppulse
+                        tforce: global.tforce     
+
+        atmocean:
+            reactions:
+                  
+                reservoir_O:
+                    class: ReactionAtmOcean_O
+                    parameters:
+                        const: external%constant_O
+                    variable_attributes:
+                        O:norm_value:           3.7e19 # PAL
+                        O:initial_value:        3.7e19
+                    variable_links:
+                        pO2*:                   atm.pO2*     
+
+                transfer_AtoLand:
+                    class: ReactionFluxTransfer
+                    parameters:
+                        input_fluxes:         fluxAtoLand.flux_$fluxname$
+                        output_fluxes:        $fluxname$_sms
+                        transfer_multiplier:  -1.0
+                    variable_links:
+                        output_O2:            O_sms   # rename
+                
+
+        atm:
+            
+        land:
+            reactions:
+                Corg_oxidation:
+                    class: ReactionOxWeathMinimal
+                    parameters:
+                        k_oxidw: 7.75e12  # mol O2 yr-1
+
+                P_weathering: 
+                    class: ReactionFluxPerturb
+                    parameters:
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [0.0, 0.0]   # mol P yr-1                    
+                    variable_links:
+                        F: ocean.P_sms
+                        FApplied: P_weath
+                        tforce: global.tforce
+                
+                # P_burial_auth_Fe: 
+                #     class: ReactionFluxPerturb
+                #     parameters:
+                #         perturb_times: [-1e30, 1e30]
+                #         perturb_totals: [-30e9, -30e9]   # mol P yr-1                    
+                #     variable_links:
+                #         F: ocean.P_sms
+                #         FApplied: P_burial_auth_Fe
+                #         tforce: global.tforce
+                
+                const_locb: 
+                    class: ReactionFluxPerturb
+                    parameters:
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [0.0, 0.0]   # mol P yr-1                    
+                    variable_links:
+                        F: atmocean.O_sms
+                        FApplied: locb
+                        tforce: global.tforce
+
+                const_ocdeg: 
+                    class: ReactionFluxPerturb
+                    parameters:
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [0.0, 0.0]   # mol P yr-1                    
+                    variable_links:
+                        F: atmocean.O_sms
+                        FApplied: ocdeg
+                        tforce: global.tforce
+                # # dO/dt = locb+mocb-ocdeg-oxidw
+
+        ocean:
+            
+            # subdomains:
+            #    oceansurface: [1]  # for river input
+            #    oceanfloor: [1]    # for oceanfloor solute flux 
+            reactions:
+
+                reservoir_P:
+                    class: ReactionReservoirScalar
+                    parameters:
+                        const: external%constant_P
+                    variable_links:
+                        R*: P*
+                    variable_attributes:
+                        R:norm_value:           3.1e15
+                        R:initial_value:        3.1e15               
+                
+                oceanburial_columns:
+                    class: ReactionOceanBurialColumn
+                    parameters:
+                        ncols: 100  # number of ocean columns
+                        k_mocb: 4.5e12      
+                        corg_burial_fac: 1.0 # multiplier for marine organic carbon burial rate (and C:P burial ratio)
+                       
+                        k_anox: 1000.0 # anoxia function sharpness
+                        # this factor of 4 is because mopb = 1/4 * total_P_burial in modern ocean
+                        k_oxic: 62.5 # 250.0 # local C:P burial ratio oxic
+                        k_anoxic: 125.0 # 1000.0  # local C:P burial ratio anoxic   
+                        k_O2_U_min: 0.49 # minimum normalized O2 utilisation
+                        k_O2_U_max: 0.51 # maximum normalized O2 utilisation"),                        
+               
+        oceanfloor:
+            reactions:
+

@@ -24,10 +24,26 @@ From:
 
 Remove import PALEOreactions (part of PALEOdev.jl repository)
 
-Copy 
-    OOEOAE_base/Uranium.jl from PALEOdev.jl\PALEOreactions\src\biogeochem\Uranium.jl
+Copy:
+- OOEOAE_base/Uranium.jl 
+    from: PALEOdev.jl\PALEOreactions\src\biogeochem\Uranium.jl
 
+- OOEOAE_base/CarbBurial_dev.jl 
+    from: PALEOcopse.jl\src\oceanfloor\CarbBurial.jl
+        Update the mccb for each cell...
     and include in each of the P-O-A scripts 
+
+New script:
+- ReactionsOOEOAE_dev.jl
+    - ReactionOceanBurialColumn: column ocean hierarchy 
+    - ReactionOxWeathMinimal: simplified oxidw
+    - ReactionUOceanfloor_dev: Uburial for each cell...
+
+- SolverFunctionsOOEOAE2.jl
+    Structure and functions to find the nullclines and other items in Phase plane.
+
+- Isoline.jl
+    src to support SolverFunctionsOOEOAE2.jl
 
 ## Figure cross-reference for PNAS submitted version 2024-01
 
@@ -42,36 +58,60 @@ for the figure panels that are then composited in Inkscape.
 
     Fig 2 (P-O phase plane)
         Figure2_PO_secular_stability_oscillation
-            OOEOAE_base/1_P_O_columns_test/P_O_columns_Table2_sum_20231226.jl
-            -> figures\P_O_columns_Table2_sum_20231226
+            - Step 1 script
+                OOEOAE_base/1_P_O_columns_test/P_O_columns_Table2_sum_20231226.jl ->
+            - Step 2 script plot into dropbox
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test/P_O_columns_Table2_sum_20231226/PO_secular_stability_ocillation_summary_20231226.svg
+            - Step 3 diff versions of plot deposit
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure2_PO_secular_stability_oscillation/PO_secular_stability_ocillation_summary_20231227.svg
 
     Fig 3 (P-O-A limit cycles)
         Figure4_POAU_3D_sum_20231106
-            OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_20231122_graphicstest.jl
-            -> figures\P_O_A_U_Table2_3D_sum_graphicstest
+            - Step 1 script
+                OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_20231122_graphicstest.jl -> 
+            - Step 2 script plot into dropbox
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_graphicstestP_O_A_U_Table2_3D_sum_graphicstest (all files in it) ->
+            - Step 3 diff versions of plot deposit
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure4_POAU_3D_sum_20231106/Figure4_3D_phase_plane_sum_20240103.svg
 
     Fig 4 (P-O excitability and rate-dependent forcing)
         Figures/Figure5_POA_Ppulse
-            OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table3_1_20231227.jl
-            -> figures\P_O_A_U_Table3_1
+            - Step 1 script
+                OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table3_1_20231227.jl ->
+            - Step 2 script plot into dropbox
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table3_1/P_O_excitability_rate_dependent_oxic_20231227.svg ->
+            - Step 3 diff versions of plot deposit
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure5_POA_Ppulse/P_O_excitability_rate_dependent_oxic_20231229.svg
+            
 
     Fig 5 (P-O-A OAE excitation by CO2 pulse)
         Figures/Figure7_POAU_CO2pulse
-        ZHL TODO this is not in the README, the 3D plot does not show the trajectory correctly !!!
-            OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_1_excitability_sum_20231202.jl
-            -> figures\P_O_A_U_Table4_1_excitability_sum
+            - Step 1 script
+                OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_1_excitability_sum_20231202.jl ->
+            - Step 2 script plot into dropbox
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_1_excitability_sum ->
+            - Step 3 diff versions of plot deposit
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_POAU_CO2pulse/Excitability_CO2pulse_summary_20231221.svg
 
     Fig 6 (P-O-A OOE excitation by degassing reduction)
         Figures/Figure7_POAU_CO2pulse
-            OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_4_rate_sum_20231203.jl
-            -> figures\P_O_A_U_Table4_4_rate_sum
+            - Step 1 script
+                OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_4_rate_sum_20231203.jl -> 
+            - Step 2 script plot into dropbox
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_4_rate_sum/Rate_CO2pulse_summary_20231218.svg ->
+            - Step 3 diff versions of plot deposit
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_POAU_CO2pulse/Rate_CO2pulse_summary_20231225.svg
 
     Fig 7 (P-O-A regime diagram)
         Figures/Figure_regimes/regimes_20231221.pdf
-            ZHL TODO this svg / pdf is not mentioned in the README
-            OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table6_contour_fix_intersection.jl
-            -> figures/P_O_A_U_Table6_contour_20231212
-            (NB: takes ~30mins to run a grid of models)
+            - Step 1 script
+                OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table6_contour_fix_intersection.jl ->
+                (NB: takes ~30mins to run a grid of models)
+            - Step 2 script plot into dropbox
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table6_contour_20231212/Fig6_Stability_diagram_Corg.svg ->
+            - Step 3 diff versions of plot deposit
+                Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure_regimes/regimes_20231221.svg
+            
 
     Fig SI P-O hysteresis bifurcation
         Figures/FigureSI_PO_secular_stability_oscillation/PO_secular_stability_SI_fix_intersection_20240103.pdf

@@ -73,10 +73,10 @@ for (filenameroot,  O2_U_target) in expts_table
         O2PAL = 0.21*PB.Constants.k_moles1atm
 
         group_fluxOceanBurial = ds.group["fluxOceanBurial"]
-        P_total_grid = group_fluxOceanBurial["P_total_grid"][:]
-        O2_grid = group_fluxOceanBurial["O2_grid"][:]
+        P_total_grid = Array(group_fluxOceanBurial["P_total_grid"])
+        O2_grid = Array(group_fluxOceanBurial["O2_grid"])
 
-        flux_total_P = group_fluxOceanBurial["flux_total_P"][:]
+        flux_total_P = Array(group_fluxOceanBurial["flux_total_P"])
         
         contour!(
             p_Pnullcline,

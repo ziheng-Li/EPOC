@@ -146,14 +146,14 @@ function Grid_cube_P_O2(
 
         # get O2 grid
         local atm_group = nc_input.group["atm"]
-        local O2 = reshape(atm_group["O2"][:], (n_P_norm, n_O2_norm))
+        local O2 = reshape(Array(atm_group["O2"]), (n_P_norm, n_O2_norm))
         local O2_grid = O2[1, :]
         @info "O2_grid: $O2_grid"
         @info "check  : $(O2[end, :])"
 
         # get P grid
         local ocean_group = nc_input.group["ocean"]
-        local P_total = reshape(ocean_group["P_total"][:], (n_P_norm, n_O2_norm))
+        local P_total = reshape(Array(ocean_group["P_total"]), (n_P_norm, n_O2_norm))
         local P_total_grid = P_total[:, end] # use last, not first record as the high pO2 values are probably more reliable
         @info "P_total_grid: $P_total_grid"
         @info "check  : $(P_total[:, 1])"
@@ -187,7 +187,7 @@ function Grid_cube_P_O2(
                 # remove netcdf-internal attributes
                 filter!(kv -> !(kv.first in ("add_offset", "scale_factor", "_FillValue")), vattrib)
                 vdimnames = NCDatasets.dimnames(var)
-                vdata = var[:]
+                vdata = Array(var)
                 vsize = size(vdata)
                 @info "    varname $varname vdimnames $vdimnames eltype $(eltype(vdata)) vsize $vsize"
                 if !isempty(vdimnames) && last(vdimnames) == "grid_index"
@@ -231,16 +231,16 @@ function plot_NCDataset_P_O2(
         O2PAL = 0.21*PB.Constants.k_moles1atm
 
         group_fluxOceanBurial = ds.group["fluxOceanBurial"]
-        P_total_grid = group_fluxOceanBurial["P_total_grid"][:]
-        O2_grid = group_fluxOceanBurial["O2_grid"][:]
+        P_total_grid = Array(group_fluxOceanBurial["P_total_grid"])
+        O2_grid = Array(group_fluxOceanBurial["O2_grid"])
 
-        flux_total_P = group_fluxOceanBurial["flux_total_P"][:]
+        flux_total_P = Array(group_fluxOceanBurial["flux_total_P"])
         p1 = heatmap(P_total_grid./P_total_modern, O2_grid./O2PAL, flux_total_P'; 
             title="P burial", xlabel="P_total / modern", ylabel="pO2 (PAL)")
         p2 = contour(P_total_grid./P_total_modern, O2_grid./O2PAL, flux_total_P';
             title="P burial $P_burial_levels", xlabel="P_total / modern", ylabel="pO2 (PAL)", levels=P_burial_levels)
 
-        flux_total_Corg = group_fluxOceanBurial["flux_total_Corg"][:]
+        flux_total_Corg = Array(group_fluxOceanBurial["flux_total_Corg"])
         p3 = heatmap(P_total_grid./P_total_modern, O2_grid./O2PAL, flux_total_Corg'; 
             title="Corg burial", xlabel="P_total / modern", ylabel="pO2 (PAL)")
         p4 = plot(P_total_grid./P_total_modern, flux_total_Corg[:, 1],

@@ -20,7 +20,7 @@ include("../ReactionsOOEOAE_dev.jl")
 include("../SolverFunctionsOOEOAE2.jl")
 
 include("../CarbBurial_dev.jl")
-include("../Uranium.jl")
+include("../../PALEOreactions/Uranium.jl")
 
 include("../ooeoae_expts.jl")
 
@@ -28,7 +28,7 @@ include("../ooeoae_expts.jl")
 # dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
 # dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
 # dropbox_output_dir = "C:/Users/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
-dropbox_output_dir = joinpath(@__DIR__, "../../figures")
+dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table6")
 
 ######################################

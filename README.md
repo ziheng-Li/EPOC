@@ -24,16 +24,15 @@ From:
 
 Remove import PALEOreactions (part of PALEOdev.jl repository)
 
-Copy:
-- OOEOAE_base/Uranium.jl 
-    from: PALEOdev.jl\PALEOreactions\src\biogeochem\Uranium.jl
+Copy from PALEOdev/PALEOreactions to OOEOAE_base/PALEOreactions:
+- Uranium.jl, AtmReservoirs.jl, Burial.jl, OceanTransportRomanielloShelf.jl
 
+Copy from OOEOAE_base:
 - OOEOAE_base/CarbBurial_dev.jl 
     from: PALEOcopse.jl\src\oceanfloor\CarbBurial.jl
         Update the mccb for each cell...
     and include in each of the P-O-A scripts 
 
-New script:
 - ReactionsOOEOAE_dev.jl
     - ReactionOceanBurialColumn: column ocean hierarchy 
     - ReactionOxWeathMinimal: simplified oxidw
@@ -45,6 +44,10 @@ New script:
 - Isoline.jl
     src to support SolverFunctionsOOEOAE2.jl
 
+- ooeoae_plots.jl
+    Romaniello ocean plotting functions
+
+
 ## Figure cross-reference for PNAS submitted version 2024-01
 
 Master table of experiment parameters is OOEOAE_base\OOEOAE_TableS1_sum_all_expts_20240103.xlsx
@@ -53,8 +56,13 @@ Figure graphics and README are in subfolders of Dropbox\BACE_OOEOAE\DainesLiOver
 where the README documents that scripts used and the location and names of the intermediate png, svg
 for the figure panels that are then composited in Inkscape.
 
+Scripts are modified to reproduce output and save in ./figures/ instead of Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/
+
+
     Fig 1
         Figure1_model_schematic
+
+        (shelf area panel - see SI Fig 4 below)
 
     Fig 2 (P-O phase plane)
         Figure2_PO_secular_stability_oscillation
@@ -113,7 +121,34 @@ for the figure panels that are then composited in Inkscape.
                 Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure_regimes/regimes_20231221.svg
             
 
-    Fig SI P-O hysteresis bifurcation
+    Fig SI3 Romaniello global + shelves vs WOA evaluation
+        Figures\FigureS2_romglb_transport\burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p23_0p25_lowUpwHlatP.png
+
+            OOEOAE_base/P_O_romglb_shelf_20231218/P_O_romglb_vs_GLODAP_20240102.jl
+               -> figures/P_O_romglb_shelf_20231216/P_O_romglb_vs_GLODAP_20240102/burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p23_0p25_lowUpwHlatP.png
+
+            ZHL TODO: I had to uncomment L95-98 to produce a plot ?
+
+    Fig SI4 Romaniello shelf area controls (expanded version of main paper Fig 1 panel C)
+
+        Figures\Figure_ICBM_shelves\icbm_shelves_20231219.pdf
+
+        OOEOAE_base/P_O_romglb_shelf_20231218/  
+            see README.md, this requires a sequence of scripts:
+            
+            julia> include("P_O_romglb_baseline2_20231218.jl")  # tune and plot shelf areas to prescribed Corg burial vs [O2] distribution
+                -> figures/P_O_romglb_shelf_20231216/P_O_romglb_baseline_20231218/
+                        Shelf_Area_Summary.svg
+                        Accumulated_Sum_Corg_burial.svg
+
+            julia> include("P_O_romglb_save_grid.jl")  # calculate and save grid P vs O2
+                -> figures/P_O_romglb_shelf_20231216/P_O_romglb_save_grid_20231218/
+                (netcdf gridded output for use by plot script below)
+            
+            julia> include("P_O_romglb_plot_grid.jl")  # plot contours of constant P burial in P - O plane
+                -> figures/P_O_romglb_shelf_20231216/Pnullcline_Summary.svg (aka contours of constant P burial)
+
+    Fig SI 5 P-O hysteresis bifurcation
         Figures/FigureSI_PO_secular_stability_oscillation/PO_secular_stability_SI_fix_intersection_20240103.pdf
             OOEOAE_base/1_P_O_columns_test/P_O_columns_FigS1_20231202.jl
             -> figures\P_O_columns_FigS1_20231202

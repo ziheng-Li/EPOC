@@ -19,7 +19,7 @@ include("../ooeoae_expts.jl")
 # dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
 # dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
 # dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
-dropbox_output_dir = joinpath(@__DIR__, "../../figures")
+dropbox_output_dir = joinpath(@__DIR__, "../../figures/1_P_O_columns_test")
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_columns_FigS1_20231202")
 
 

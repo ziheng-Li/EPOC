@@ -1,0 +1,74 @@
+transportromglb: &oceantransport
+    # 3 column Romaniello & Derry (2010) global ocean circulation, with 18x 2-box shelf columns added
+    #   and modified hypsometry so 3 original columns have "vertical sides" for depths < 200m
+    # Box indices:
+    #   - hlat      1-13  (surface box is 1)
+    #   - gyre      14-46 
+    #   - upw       47-79
+    #   - shelfX    80-125
+    #
+    # NB: requires addtional oceanhlatgyresurface Domain (for nutrient input)
+    class: ReactionOceanTransportRomanielloShelf
+    parameters:
+        shelf_names:          ["shelf1", "shelf2", "shelf3", "shelf4", "shelf5", "shelf6", "shelf7", "shelf8", "shelf9", "shelf10", "shelf11", "shelf12", "shelf13", "shelf14", "shelf15", "shelf16", "shelf17", "shelf18", "shelf19", "shelf20", "shelf21"]
+        shelf_areas:          [0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e3, 0.16e13] # sum of the total area = 2.88e13
+        shelf_depths:         [150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0] # m
+        # set all temps to ~global mean
+        shelf_temps:          [15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0, 15.0]  # ˚C
+        # TODO global_shelf_frac appears to have been removed ? (parameter exists, but does nothing?)
+        # global_shelf_frac:    1e-2 # remove shelf from hlat, gyre columns
+        tshelfexch:           [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] # yr
+
+        #                     indices of ocean boxes to connect shelf lower boxes to (surface = 14)
+        ioceanshelf:        [14,  14,   14,  15,  15,  16,  17,  18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] 
+        toceanexch:         [3.0, 3.0, 6.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0] # yr
+
+        #                     indices of ocean boxes to connect shelf lower boxes to (surface = 14)
+        ioceanshelf2:        [15,   15,  15,  15,  16,  16,  17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+        toceanexch2:         [6.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0] # yr
+
+        
+
+
+        temp_trackglobal:   false
+        remove_upw:           false
+        remove_shelf:         true
+        volume_method:        Trapezoid # Options: Read, Trapezoid, Rectangle
+        #tansportSv:         [3.9818, 3.10109, 4.29604, 2.60568, 3.120409, 0.35264, 0.161388, 0.12972, 0.07868, 0.04772, 0.02894, 0.01755, 0.01064, 0.00645, 0.00391, 0.00237, 0.00144, 0.00087] # sum of them = 18 Sv, data from romglb
+        domain_oceanhlatgyresurface: true
+
+surface_insol: &surfaceinsol 
+    class: ReactionConst
+    parameters:
+        constnames: [surface_insol]
+    variable_attributes: 
+        surface_insol:initial_value: [70.0, 70.0, 70.0, 70.0, 350.0, 350.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0, 1400.0] # W m-2 abuse insolation to set productivity
+
+bioprod: &oceanbioprod
+    class: ReactionBioProdPrest
+    parameters:
+        rCcarbCorg:   0.0
+        rCorgPO4:     106.0
+        rNPO4:        16.0
+        #               restore 1, frac 2, frac of total mean 3, none 0 
+        # bioprod:        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   # hlat restore to 1.5mmol/m3
+        #                     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # gyre restore to 0.0  
+        #                     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # upw restore to 0.2
+        #                     1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]  # shelves
+
+        # bioprodval:     [0.002, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, # mol/m3
+        #                     0.0, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, 
+        #                     0.001, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN,
+        #                     0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN,]
+        bioprod:        [3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,   # hlat restore to 1.5mmol/m3
+                            1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # gyre restore to 0.0  
+                            3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # upw restore to 0.2
+                            1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]  # shelves
+
+        bioprodval:     [1.0, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, # mol/m3
+                            0.0, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, 
+                            0.4, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN, .NaN,
+                            0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN, 0.0, .NaN,]
+        trest:          0.1
+    variable_links:
+        prod_*: export_*

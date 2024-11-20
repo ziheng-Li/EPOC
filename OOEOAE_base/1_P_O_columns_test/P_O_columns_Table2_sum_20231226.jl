@@ -26,7 +26,7 @@ output_figures_dir = joinpath(dropbox_output_dir, "P_O_columns_Table2_sum_202312
 #####################################################
 # Create model
 #####################################################
-model = PB.create_model_from_config(joinpath(@__DIR__, "../P_O_columns.yaml"), "model1")
+model = PB.create_model_from_config(joinpath(@__DIR__, "P_O_columns.yaml"), "model1")
 
 #####################################################
 # Set experiment (parameters)

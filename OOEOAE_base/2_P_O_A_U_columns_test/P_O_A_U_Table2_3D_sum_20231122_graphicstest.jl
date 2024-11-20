@@ -19,8 +19,8 @@ import PALEOcopse
 include("../ReactionsOOEOAE_dev.jl")
 include("../SolverFunctionsOOEOAE2.jl")
 
-include("../CarbBurial_dev.jl")
-include("../../PALEOreactions/Uranium.jl")
+include("CarbBurial_dev.jl")
+include("Uranium.jl")
 
 include("../ooeoae_expts.jl")
 
@@ -45,7 +45,7 @@ include("expt_plot3D.jl")
 #####################################################
 
 model = PB.create_model_from_config(
-    joinpath(@__DIR__, "../P_O_A_U_columns.yaml"), 
+    joinpath(@__DIR__, "P_O_A_U_columns.yaml"), 
     "model1", 
     modelpars=Dict("CGconstant"=>false), # , "Aconstant"=>true
 )

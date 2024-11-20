@@ -1,9 +1,8 @@
-module Burial
+module SedimentationRate_dev
 
 
 import PALEOboxes as PB
 using PALEOboxes.DocStrings
-# import PALEOreactions
 
 using SpecialFunctions
 using Interpolations
@@ -20,10 +19,10 @@ eg used by [Ozaki2011](@cite)
 
 # Examples:
 Check value at depth 1000m
- ```jldoctest; setup = :(import PALEOreactions)
-julia> round(PALEOreactions.Oceanfloor.Burial.sedRate_Tromp1995(-1000.0), sigdigits=5)
+ ```jldoctest
+julia> round(Main.SedimentationRate_dev.sedRate_Tromp1995(-1000.0), sigdigits=5)
 0.00034152
-julia> round(PALEOreactions.Oceanfloor.Burial.sedRate_Tromp1995(-100.0), sigdigits=5)
+julia> round(Main.SedimentationRate_dev.Burial.sedRate_Tromp1995(-100.0), sigdigits=5)
 0.002369
 ```
 """
@@ -42,7 +41,7 @@ function sedRate_Tromp1995(depth)
 end
 
 """
-    ReactionSedimentationRate
+    ReactionSedimentationRate_dev
 
 Sedimentation rate parameterized from water depth
 
@@ -52,7 +51,7 @@ $(PARS)
 # Methods and Variables
 $(METHODS_SETUP)
 """
-Base.@kwdef mutable struct ReactionSedimentationRate{P} <: PB.AbstractReaction
+Base.@kwdef mutable struct ReactionSedimentationRate_dev{P} <: PB.AbstractReaction
     base::PB.ReactionBase
 
     pars::P = PB.ParametersTuple(
@@ -62,7 +61,7 @@ Base.@kwdef mutable struct ReactionSedimentationRate{P} <: PB.AbstractReaction
 
 end
 
-function PB.register_methods!(rj::ReactionSedimentationRate)
+function PB.register_methods!(rj::ReactionSedimentationRate_dev)
     
     sr_Tromp1995(pars, vars, i) = sedRate_Tromp1995(vars.zlower[i])
 
@@ -104,7 +103,6 @@ function setup_sedimentation_rate(
 
     return nothing
 end
-
 
 
 end

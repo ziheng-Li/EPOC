@@ -16,12 +16,15 @@ include("../SolverFunctionsOOEOAE2.jl")
 include("../ooeoae_expts.jl")
 
 
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
-# dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
-# dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
-dropbox_output_dir = joinpath(@__DIR__, "../../figures/1_P_O_columns_test")
-output_figures_dir = joinpath(dropbox_output_dir, "P_O_columns_FigS1_20231202")
+# archive figures location
+# dropbox_output_dir = joinpath(@__DIR__, "../../figures/1_P_O_columns_test")
 
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
+output_figures_dir = joinpath(dropbox_output_dir, "P_O_columns_FigS1_20231202")
+isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 #####################################################
 # Create model
@@ -124,7 +127,6 @@ expts_table = [
     # ("T19", "preCambrian_Bergman_lowCPsea_sharpness6",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.23, 0.25)), ("corg_burial_fac", 0.9)]),
 ]
 
-isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 P_O_columns_FigS1 = Dict() # all results, indexed by fileroot
 
@@ -264,7 +266,7 @@ function plot_phase_plane(exptroot)
         Plots.plot!(p, Obal_P, Obal_O, color=:red, linestyle=linestyles[i], label="PO "*expt_id)
 
         @info "eqb_point = $(eqb_point)"
-        #(; element_counts, start_point_index, end_point_index, sign_change) = SolverFunctionsOOEOAE2.find_periodic(P_ts, O_ts, t_ts; Spec_P=P_ts[end])
+        # (; element_counts, start_point_index, end_point_index, sign_change) = SolverFunctionsOOEOAE2.find_periodic(P_ts, O_ts, t_ts; Spec_P=P_ts[end])
         if (end_point_index > 0) && (start_point_index > 0) # if the case is stable you may find the end_point_index==NaN
             Plots.plot!(p, P_ts[1:end_point_index], O_ts[1:end_point_index], color=:green, linestyle=linestyles[i], label=false)
         else

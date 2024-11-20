@@ -19,11 +19,15 @@ include("Uranium.jl")
 include("../ooeoae_expts.jl")
 # include("../ooeoae_plots.jl")
 
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+# Archived figures
+# dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table3_1")
+isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 #####################################################
 # simplified dA/dt = oxidw + ocdeg + carbw + ccdeg - mocb - mccb
@@ -109,8 +113,6 @@ expts_table = [
         ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[4], 1e8], [0, 0, 20e9, 20e9])]),  # no Pw feedback
 
 ]
-
-isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 P_O_A_U_columns_table3_1 = Dict() # all results, indexed by fileroot
 

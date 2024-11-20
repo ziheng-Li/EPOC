@@ -24,13 +24,15 @@ include("Uranium.jl")
 include("../ooeoae_expts.jl")
 
 
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
-# output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table6")
+# Archived figures
 dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table6_contour_20231212")
+isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 ######################################
 # key parameters that control plot appearance
@@ -129,7 +131,6 @@ jac_rel = Matrix{Any}(undef, size(z_Periodicity_rel)...) # to hold Jacobian matr
 linear_growth_rate_rel = fill(NaN, size(jac_rel)) #  growth rate from jacobian (-ve for damped oscillations)
 linear_period_rel = fill(NaN, size(jac_rel)) # period from linear stability analysis
 
-isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 for (i, fold_pars) in enumerate(fold_sharpness_grid)
     (k_O2_U, f_cbf) = fold_pars

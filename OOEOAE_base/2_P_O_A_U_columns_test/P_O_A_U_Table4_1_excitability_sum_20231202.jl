@@ -25,11 +25,15 @@ include("Uranium.jl")
 include("../ooeoae_expts.jl")
 # include("../ooeoae_plots.jl")
 
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
-dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+# Archived figures location
+# dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table4_1_excitability_sum")
+isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 ######################################
 # key parameters that control plot appearance
@@ -87,7 +91,6 @@ expts_table = [
 
 ]
 
-isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 P_O_A_U_columns_Table4_1 = Dict()
 
@@ -235,6 +238,8 @@ for (j, exptroot) in enumerate(["CO2pulse1", "CO2pulse2"])
     GLMakie.save(joinpath(output_figures_dir, "preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_"*exptroot*"_3D.png"), fig;
     px_per_unit=5, # Makie 0.20 increase resolution of saved figure (600 x 5 = 3000 pixels)
     ) # closes window
+    # redisplay needed to reset scaling ?
+    display(fig)
 end
 
 # ####### 2D plots in single one ########

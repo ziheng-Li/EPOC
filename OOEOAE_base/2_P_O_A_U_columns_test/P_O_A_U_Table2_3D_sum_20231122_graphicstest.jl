@@ -25,12 +25,15 @@ include("Uranium.jl")
 include("../ooeoae_expts.jl")
 
 
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
-dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+# Archived figures
+# dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table2_3D_sum_graphicstest")
+isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 ######################################
 # key parameters that control plot appearance
@@ -105,8 +108,6 @@ expts_table = [
     # ("preCambrian_Corgbf0p5_Bergman_unstable_baseline2_lowO2U_Corgb8_Psilw_only",  [("k_O2_U", (0.125, 0.25)), ("corg_burial_fac", 0.3)]),
 
 ]
-
-isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 P_O_A_U_columns_Table2_3D_sum = Dict()
 
@@ -274,6 +275,8 @@ GLMakie.lines!(
 GLMakie.scatter!(axs, eqb_point; color=:red, markersize=glm_eqb_markersize,)
 display(fig)
 GLMakie.save(joinpath(output_figures_dir, "POAU_figure3_sharp_switch_3D_phase_plane_central.png"), fig; px_per_unit=5,)
+# redisplay needed to reset scaling ?
+display(fig)
 
 # One panel with two "marginally unstable" time series
 # dP/dt=0 is the same so use any one of 3
@@ -309,6 +312,8 @@ for (i, exptroot) in zip([2, 3], ["Corgb3", "Corgb6"]) # ["Corgb4", "Corgb3", "C
 end
 display(fig)
 GLMakie.save(joinpath(output_figures_dir, "POAU_figure3_sharp_switch_3D_phase_plane_marginal.png"), fig; px_per_unit=5,)
+# redisplay needed to reset scaling ?
+display(fig)
 
 # # ####### For the 2D TS part #######
 plot_time_series_PO = Dict()
@@ -362,5 +367,7 @@ GLMakie.scatter!(axs, eqb_point; color=:red, markersize=glm_eqb_markersize,)
 display(fig)
 
 GLMakie.save(joinpath(output_figures_dir, "POAU_figure3_stable_3D_phase_plane.png"), fig; px_per_unit=5,)
+# redisplay needed to reset scaling ?
+display(fig)
 
 

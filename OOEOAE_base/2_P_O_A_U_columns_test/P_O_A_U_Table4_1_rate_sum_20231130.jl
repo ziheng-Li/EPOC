@@ -25,11 +25,15 @@ include("Uranium.jl")
 include("../ooeoae_expts.jl")
 # include("../ooeoae_plots.jl")
 
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
+# Archived figures
 dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table4_1_rate_sum")
+isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 ######################################
 # key parameters that control plot appearance
@@ -95,7 +99,6 @@ expts_table = [
 
 ]
 
-isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 P_O_A_U_columns_Table4_1 = Dict()
 
@@ -247,6 +250,8 @@ for (i, exptroot) in enumerate(["rate1", "rate3", "rate5"])
     GLMakie.lines!(axs, P_ts, O_ts, A_ts; color=:green, linewidth=2, linestyle=linestyles[i])
 end
 GLMakie.save(joinpath(output_figures_dir, "Rate_CO2pulse_oxic_increase_summary_20231218.png"), fig; px_per_unit=5,)
+# redisplay needed to reset scaling ?
+display(fig)
 
 # ####### 2D plots in single one ########
 (; expt_id, paleorun, modeldata, t_ts, A_ts, P_ts, O_ts, A_val, O_val,

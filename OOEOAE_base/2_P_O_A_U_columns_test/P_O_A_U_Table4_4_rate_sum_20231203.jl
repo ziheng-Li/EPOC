@@ -19,18 +19,22 @@ import PALEOcopse
 include("../ReactionsOOEOAE_dev.jl")
 include("../SolverFunctionsOOEOAE2.jl")
 
-include("../CarbBurial_dev.jl")
-include("../../PALEOreactions/Uranium.jl")
+include("CarbBurial_dev.jl")
+include("Uranium.jl")
 
 include("../ooeoae_expts.jl")
 # include("../ooeoae_plots.jl")
 
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
+# Archived figures
 dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table4_4_rate_sum")
 output_figures_datestamp = "20231218"
+isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 ######################################
 # key parameters that control plot appearance
@@ -43,7 +47,7 @@ include("expt_plot3D.jl")
 #####################################################
 
 model = PB.create_model_from_config(
-    joinpath(@__DIR__, "../P_O_A_U_columns.yaml"), 
+    joinpath(@__DIR__, "P_O_A_U_columns.yaml"), 
     "model1", 
     modelpars=Dict(
         # "CGconstant"=>false,
@@ -97,8 +101,6 @@ expts_table = [
          ("CO2pulse", [0, 0.5e7, 0.5e7+0.01e7, 1e8], [0, 0, -2.5e12, -2.5e12]), ("OPAinit", (0.75*3.7e19, 3.98*3.1e15, 4.06*3.193e18))]), 
 
 ]
-
-isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 P_O_A_U_columns_Table4_4 = Dict()
 

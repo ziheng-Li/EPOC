@@ -16,13 +16,13 @@ import NCDatasets
 global_logger(ConsoleLogger(stderr,Logging.Info))
 
 # include("../ReactionsOOEOAE_dev.jl")
-# include("../Grid_output_P_O2.jl")
+# include("Grid_output_P_O2.jl")
 include("../GLODAPv2.2020/base_GLODAP.jl")
-include("../../PALEOreactions/OceanTransportRomanielloShelf.jl")
-include("../../PALEOreactions/Burial.jl")
-include("../../PALEOreactions/AtmReservoirs.jl")
-include("../ooeoae_expts.jl")
-include("../ooeoae_plots.jl")
+include("OceanTransportRomanielloShelf.jl")
+include("SedimentationRate_dev.jl")
+include("AtmReservoirs.jl")
+include("romglb_expts.jl")
+include("romglb_plots.jl")
 
 output_folder_name = "P_O_romglb_vs_GLODAP_20240102"
 # dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/P_O_romglb_shelf_20231116" # will need to create this manually
@@ -41,7 +41,7 @@ isdir(output_figures_dir) || mkdir(output_figures_dir)
 # the shelf_areas are all after adjustment
 expts_table = [
     # (
-    #     "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p05_0p75", ["../transportromglbshelf7.yaml","../P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
+    #     "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p05_0p75", ["transportromglbshelf7.yaml","P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
     #     (0.05, 0.75), # O2_U min, max
     #     [
     #         ("biopumpCorg_Martin", true, 0.858, 100.0),
@@ -53,7 +53,7 @@ expts_table = [
     #     ],
     # ),
     # (
-    #     "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p15_0p6", ["../transportromglbshelf7.yaml","../P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
+    #     "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p15_0p6", ["transportromglbshelf7.yaml","P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
     #     (0.15, 0.6), # O2_U min, max
     #     [
     #         ("biopumpCorg_Martin", true, 0.858, 100.0),
@@ -65,7 +65,7 @@ expts_table = [
     #     ],
     # ),
     # (
-    #     "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p23_0p25", ["../transportromglbshelf7.yaml","../P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
+    #     "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p23_0p25", ["transportromglbshelf7.yaml","P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
     #     (0.23, 0.25), # O2_U min, max
     #     [
     #         ("biopumpCorg_Martin", true, 0.858, 100.0),
@@ -76,7 +76,7 @@ expts_table = [
     #     ],
     # ),
     (
-        "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p23_0p25_lowUpwHlatP", ["../transportromglbshelf8.yaml","../P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
+        "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p23_0p25_lowUpwHlatP", ["transportromglbshelf8.yaml","P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
         (0.23, 0.25), # O2_U min, max
         [
             ("biopumpCorg_Martin", true, 0.858, 100.0),
@@ -111,7 +111,7 @@ for (filenameroot, yamls, model_name, O2_U_target, vector_pars) in expts_table
         modelpars=Dict(), # default to restoring ocean.P and atm.O2
     )
 
-    ooeoae_expts(
+    romglb_expts(
         model, vector_pars
     )
     local initial_state, modeldata = PALEOmodel.initialize!(model)

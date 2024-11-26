@@ -17,13 +17,13 @@ gr(size=(400, 400))
 # gr(size=(600, 600))
 
 
-include("../ooeoae_expts.jl")
-include("../ooeoae_plots.jl")
+include("romglb_expts.jl")
+include("romglb_plots.jl")
 # include("../GLODAPv2.2020/base_GLODAP.jl")
 
-include("../../PALEOreactions/OceanTransportRomanielloShelf.jl")
-include("../../PALEOreactions/Burial.jl")
-include("../../PALEOreactions/AtmReservoirs.jl")
+include("OceanTransportRomanielloShelf.jl")
+include("SedimentationRate_dev.jl")
+include("AtmReservoirs.jl")
 
 output_folder_name = "P_O_romglb_baseline_20231218"
 # dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/P_O_romglb_shelf_20231116" # will need to create this manually
@@ -49,7 +49,7 @@ tspan = (0.0, 1e6) # yr
 
 expts_table = [
     (
-        "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p23_0p25", ["../transportromglbshelf7.yaml","../P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
+        "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p23_0p25", ["transportromglbshelf7.yaml","P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
         (0.23, 0.25), # O2_U min, max
         target_Corg_total - 0.44e12, # target for shelf adjustment
         [
@@ -65,7 +65,7 @@ expts_table = [
         ],
     ),
     (
-        "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p15_0p6", ["../transportromglbshelf7.yaml","../P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
+        "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p15_0p6", ["transportromglbshelf7.yaml","P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
         (0.15, 0.6), # O2_U min, max
         target_Corg_total,
         [
@@ -82,7 +82,7 @@ expts_table = [
         ],
     ),
     (
-        "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p05_0p75", ["../transportromglbshelf7.yaml","../P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
+        "burial_shelves6_BioProdPrest_Martin_Ozaki2011_0p05_0p75", ["transportromglbshelf7.yaml","P_O_romglb_hlatgyre.yaml"], "model_BioProdPrest_Martin_Ozaki2011", 
         (0.05, 0.75), # O2_U min, max
         target_Corg_total,
         [
@@ -149,7 +149,7 @@ for (fileroot, yamls, model_name, O2_U_target, target_Corg_adjust, vector_pars) 
         modelpars=Dict(),
     )
 
-    ooeoae_expts(
+    romglb_expts(
         model, vector_pars
     )
     local initial_state, modeldata = PALEOmodel.initialize!(model)

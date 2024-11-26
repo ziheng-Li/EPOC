@@ -19,17 +19,20 @@ import PALEOcopse
 include("../ReactionsOOEOAE_dev.jl")
 include("../SolverFunctionsOOEOAE2.jl")
 
-include("../CarbBurial_dev.jl")
-include("../../PALEOreactions/Uranium.jl")
+include("CarbBurial_dev.jl")
+include("Uranium.jl")
 
 include("../ooeoae_expts.jl")
 
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/ASUS/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test"
-# dropbox_output_dir = "C:/Users/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test"
+# Archived figures
 dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table6")
+isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 ######################################
 # key parameters that control plot appearance
@@ -44,7 +47,7 @@ O_lims=(0.0, 2.0) # higher upper limit, needs to include "corner"  of dP/dt=0 su
 #####################################################
 
 model = PB.create_model_from_config(
-    joinpath(@__DIR__, "../P_O_A_U_columns.yaml"), 
+    joinpath(@__DIR__, "P_O_A_U_columns.yaml"), 
     "model1", 
     # modelpars=Dict("CGconstant"=>false), # , "Aconstant"=>true
     modelpars=Dict("CGconstant"=>true),
@@ -325,6 +328,9 @@ GLMakie.save(
     # joinpath(output_figures_dir, "test_OPAinit2.png"), fig;
     px_per_unit=5, # Makie 0.20 increase resolution of saved figure (600 x 5 = 3000 pixels)
 )
+
+# redisplay needed to reset scaling ?
+display(fig)
 
 @info "corg_burial_fac for eqb point on oxic fold $cobf_fold_1"
 @info "corg_burial_fac for eqb point on anoxic fold $cobf_fold_2"

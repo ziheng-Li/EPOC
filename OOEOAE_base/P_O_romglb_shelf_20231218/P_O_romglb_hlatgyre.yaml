@@ -214,7 +214,7 @@ model_BioProdPrest_Martin_Ozaki2011:
         oceanfloor:               
             reactions:
                 sedrate:
-                    class: ReactionSedimentationRate
+                    class: ReactionSedimentationRate_dev
                     parameters:
                         sed_rate_function: Tromp1995
 

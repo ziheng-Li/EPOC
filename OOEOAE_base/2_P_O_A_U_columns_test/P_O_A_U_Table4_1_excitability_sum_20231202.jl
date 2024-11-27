@@ -114,7 +114,7 @@ for (expt_id, fileroot, vector_pars) in expts_table
     # get time_series
     ####################################
     (paleorun, A_ts, O_ts, P_ts) = SolverFunctionsOOEOAE2.find_time_series(model, initial_state, modeldata; has_A=true, tspan)
-
+    t_ts = PB.get_data(paleorun.output, "global.tforce")
     ###########################################################
     # phase plane plot with nullclines and folds
     ########################################################

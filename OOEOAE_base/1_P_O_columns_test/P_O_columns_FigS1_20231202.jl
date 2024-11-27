@@ -119,12 +119,12 @@ expts_table = [
     # # # -> k_O2_U2 = k_O2_U1*2 - (k_O2_U1*2 - 0.33613)/(2-1.41807)
     # # # -> k_O2_U1 = (k_O2_U2 - (0.33613)/(2-1.41807))/(2-2/(2-1.41807))
     # # ("T13", "preCambrian_Bergman_lowCPsea",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.15, 0.85)), ("corg_burial_fac", 0.9)]), # intersection point is not [(1.4180738546345013, 0.3361302216677178)]
-    # ("T14", "preCambrian_Bergman_lowCPsea_sharpness1",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.123, 0.4)), ("corg_burial_fac", 0.9)]),
-    # ("T15", "preCambrian_Bergman_lowCPsea_sharpness2",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.158, 0.35)), ("corg_burial_fac", 0.9)]),
-    # ("T16", "preCambrian_Bergman_lowCPsea_sharpness3",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.336/2, 0.336)), ("corg_burial_fac", 0.9)]),
-    # ("T17", "preCambrian_Bergman_lowCPsea_sharpness4",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.179, 0.32)), ("corg_burial_fac", 0.9)]),
-    # ("T18", "preCambrian_Bergman_lowCPsea_sharpness5",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.193, 0.30)), ("corg_burial_fac", 0.9)]),
-    # ("T19", "preCambrian_Bergman_lowCPsea_sharpness6",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.23, 0.25)), ("corg_burial_fac", 0.9)]),
+    ("T14", "preCambrian_Bergman_lowCPsea_sharpness1",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.123, 0.4)), ("corg_burial_fac", 0.9)]),
+    ("T15", "preCambrian_Bergman_lowCPsea_sharpness2",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.158, 0.35)), ("corg_burial_fac", 0.9)]),
+    ("T16", "preCambrian_Bergman_lowCPsea_sharpness3",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.336/2, 0.336)), ("corg_burial_fac", 0.9)]),
+    ("T17", "preCambrian_Bergman_lowCPsea_sharpness4",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.179, 0.32)), ("corg_burial_fac", 0.9)]),
+    ("T18", "preCambrian_Bergman_lowCPsea_sharpness5",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.193, 0.30)), ("corg_burial_fac", 0.9)]),
+    ("T19", "preCambrian_Bergman_lowCPsea_sharpness6",       [("land_flux_Bergman", false), ("CPsea", 115.4, 230.8), ("k_O2_U", (0.23, 0.25)), ("corg_burial_fac", 0.9)]),
 ]
 
 
@@ -267,11 +267,12 @@ function plot_phase_plane(exptroot)
 
         @info "eqb_point = $(eqb_point)"
         # (; element_counts, start_point_index, end_point_index, sign_change) = SolverFunctionsOOEOAE2.find_periodic(P_ts, O_ts, t_ts; Spec_P=P_ts[end])
-        if (end_point_index > 0) && (start_point_index > 0) # if the case is stable you may find the end_point_index==NaN
-            Plots.plot!(p, P_ts[1:end_point_index], O_ts[1:end_point_index], color=:green, linestyle=linestyles[i], label=false)
-        else
-           Plots.plot!(p, P_ts, O_ts, color=:green, linestyle=linestyles[i], label=false)
-        end
+        # if (end_point_index > 0) && (start_point_index > 0) # if the case is stable you may find the end_point_index==NaN
+        #     Plots.plot!(p, P_ts[1:end_point_index], O_ts[1:end_point_index], color=:green, linestyle=linestyles[i], label=false)
+        # else
+        #    Plots.plot!(p, P_ts, O_ts, color=:green, linestyle=linestyles[i], label=false)
+        # end
+        Plots.plot!(p, P_ts, O_ts, color=:green, linestyle=linestyles[i], label=false)
         if !isempty(eqb_point)
             Plots.scatter!(p, [only(eqb_point)[1]], [only(eqb_point)[2]]; color=:red, markershape=:circle, markerstrokewidth=0, label=nothing);
         end

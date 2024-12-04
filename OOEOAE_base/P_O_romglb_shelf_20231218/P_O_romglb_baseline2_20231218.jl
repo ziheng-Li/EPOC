@@ -25,11 +25,14 @@ include("OceanTransportRomanielloShelf.jl")
 include("SedimentationRate_dev.jl")
 include("AtmReservoirs.jl")
 
-output_folder_name = "P_O_romglb_baseline_20231218"
-# dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/P_O_romglb_shelf_20231116" # will need to create this manually
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/P_O_romglb_shelf_20231116"
-dropbox_output_dir = joinpath(@__DIR__, "../../figures/P_O_romglb_shelf_20231116") # will need to create this manually
+# Archive figures location
+# dropbox_output_dir = joinpath(@__DIR__, "../../figures/P_O_romglb_shelf_20231116") # will need to create this manually
 
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
+output_folder_name = "P_O_romglb_baseline_20231218"
 output_figures_dir = joinpath(dropbox_output_dir, output_folder_name)
 isdir(output_figures_dir) || mkdir(output_figures_dir)
 
@@ -190,7 +193,7 @@ for (fileroot, yamls, model_name, O2_U_target, target_Corg_adjust, vector_pars) 
         ),
     )
 
-    ooeoae_expts(
+    romglb_expts(
         model_noP, vector_pars
     )
     local initial_state, modeldata = PALEOmodel.initialize!(model_noP)
@@ -211,7 +214,7 @@ for (fileroot, yamls, model_name, O2_U_target, target_Corg_adjust, vector_pars) 
     # Sum plot number of shelves vs. O2_U (single panels)
     #################################
 
-    local df = DataFrame(
+    local df = DataFrames.DataFrame(
         i=1:last(ishelfX_floor), # box index
         ocean_zlower = PB.get_data(paleorun.output, "ocean.zlower")[end],
         oceanfloor_Afloor = PB.get_data(paleorun.output, "oceanfloor.Afloor")[end],
@@ -221,7 +224,7 @@ for (fileroot, yamls, model_name, O2_U_target, target_Corg_adjust, vector_pars) 
         Corg_b = PB.get_data(paleorun.output, "fluxOceanBurial.flux_Corg")[end],
     )
 
-    local df_noP = DataFrame(
+    local df_noP = DataFrames.DataFrame(
         i=1:last(ishelfX_floor), # box index
         ocean_zlower = PB.get_data(paleorun_noP.output, "ocean.zlower")[end],
         oceanfloor_Afloor = PB.get_data(paleorun_noP.output, "oceanfloor.Afloor")[end],
@@ -305,11 +308,11 @@ for (fileroot, yamls, model_name, O2_U_target, target_Corg_adjust, vector_pars) 
 
     # calculate an approximation to the target Corg cumulative burial,
     # by adjusting burial in shelves by burial_adj_fac
-    df_all_O2_U.burial_adj_fac = NaN*ones(nrow(df_all_O2_U))
-    df_all_O2_U.Corg_b_cumsum_adj = NaN*ones(nrow(df_all_O2_U))
+    df_all_O2_U.burial_adj_fac = NaN*ones(DataFrames.nrow(df_all_O2_U))
+    df_all_O2_U.Corg_b_cumsum_adj = NaN*ones(DataFrames.nrow(df_all_O2_U))
 
     local last_Corg_b_cumsum_adj = 0.0
-    for irow in 1:nrow(df_all_O2_U)
+    for irow in 1:DataFrames.nrow(df_all_O2_U)
         i = df_all_O2_U[irow, :i]
         ishelf = findfirst(x->x==i, ishelfX_floor) # nothing if i isn't a shelf floor box
 

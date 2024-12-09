@@ -80,8 +80,8 @@ rate_labels = Dict("rate1"=>"20 My", "rate2"=>"5 My", "rate3"=>"1 My", "rate4"=>
 expts_table = [ 
     # excitation of sharp-switch case by a near-instantaneous P input pulse
     # # fileroot                                      k10_phosw  sil carb ox                    CPland   k11_landfrac
-    # ("PO 10", "modern_Bergman_sharp_switch_stable_oxic_Ppulse1", [("Ppulse", [2e7, 2e7+5e4], [1.5e10, 1.5e10*5e4/5e4])]),  # small pike
-    # ("PO 11", "modern_Bergman_sharp_switch_stable_oxic_Ppulse2", [("Ppulse", [2e7, 2e7+5e4], [3.0e10, 3.0e10*5e4/5e4])]),  # full round
+    ("PO 10", "modern_Bergman_sharp_switch_stable_oxic_Ppulse1", [("Ppulse", [2e7, 2e7+5e4], [1.5e10, 1.5e10*5e4/5e4])]),  # small pike
+    ("PO 11", "modern_Bergman_sharp_switch_stable_oxic_Ppulse2", [("Ppulse", [2e7, 2e7+5e4], [3.0e10, 3.0e10*5e4/5e4])]),  # full round
 
     # ("modern_Bergman_sharp_switch_stable_oxic_Ppulse_rate0", [# ("P_weathering", 3.9e10, 1.0, 0.0, 0.0), 
     #     ("Ppulse", [0, 1.5e7, 1.5e7+2.0e7, 1e8], [0, 0, 0, 0])]),  # no Pw feedback
@@ -116,8 +116,8 @@ expts_table = [
 
 P_O_A_U_columns_table3_1 = Dict() # all results, indexed by fileroot
 
-# for (expt_id, fileroot, vector_pars) in expts_table
-    (expt_id, fileroot, vector_pars) = expts_table[1]
+for (expt_id, fileroot, vector_pars) in expts_table
+    # (expt_id, fileroot, vector_pars) = expts_table[1]
 
     ooeoae_expts(
         model, vector_pars
@@ -130,17 +130,6 @@ P_O_A_U_columns_table3_1 = Dict() # all results, indexed by fileroot
     #########################################################
 
     initial_state, modeldata = PALEOmodel.initialize!(model)
-
-    paleorun = PALEOmodel.Run(model=model, output = PALEOmodel.OutputWriters.OutputMemory())
-    @time PALEOmodel.ODE.integrate(
-        paleorun, initial_state, modeldata, tspan, 
-        solvekwargs=( # https://diffeq.sciml.ai/stable/basics/common_solver_opts/
-            reltol=1e-4,
-            # reltol=1e-5,
-            # saveat=1e6,
-            dtmax=1e4,
-        )
-    )
     
     (paleorun, _, O_ts, P_ts) = SolverFunctionsOOEOAE2.find_time_series(model, initial_state, modeldata; has_A=false, tspan)
 
@@ -174,254 +163,254 @@ P_O_A_U_columns_table3_1 = Dict() # all results, indexed by fileroot
     Pbal_P, Pbal_O = SolverFunctionsOOEOAE2.tuples_to_coords(dPdt_line)
     Obal_P, Obal_O = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_line)
 
-    # ######### Plot #########
-    # gr(size=(1000, 600)) # plotlyjs(size=(1000, 600))
-    # pager=PALEOmodel.PlotPager(
-    #     (3, 2), (legend_background_color=nothing, );
-    #     displayfunc=(plot, nplot)->savefig(plot, joinpath(output_figures_dir, "$(fileroot).svg")), # save to file instead of default display
-    # )
-    # pager(
-    #     (
-    #         Plots.plot(Pbal_P, Pbal_O, xlims=[0.0, 4.5], ylims=[0.0, 2.5], label="slow manifold", xlabel="P_norm", ylabel="O (PAL)");
-    #         Plots.plot!(Pbal_P, Pbal_O, xlims=[0.0, 4.5], ylims=[0.0, 2.5], label="slow manifold", xlabel="P_norm", ylabel="O (PAL)");
-    #         Plots.plot!(Obal_P, Obal_O, label="O nullcline");
-    #         Plots.plot!(P_ts, O_ts, label="time series", left_margin = 8Plots.mm, bottom_margin = 8Plots.mm)
-    #     ),
+    ######### Plot #########
+    gr(size=(1000, 600)) # plotlyjs(size=(1000, 600))
+    pager=PALEOmodel.PlotPager(
+        (3, 2), (legend_background_color=nothing, );
+        displayfunc=(plot, nplot)->savefig(plot, joinpath(output_figures_dir, "$(fileroot).svg")), # save to file instead of default display
+    )
+    pager(
+        (
+            Plots.plot(Pbal_P, Pbal_O, xlims=[0.0, 4.5], ylims=[0.0, 2.5], label="slow manifold", xlabel="P_norm", ylabel="O (PAL)");
+            Plots.plot!(Pbal_P, Pbal_O, xlims=[0.0, 4.5], ylims=[0.0, 2.5], label="slow manifold", xlabel="P_norm", ylabel="O (PAL)");
+            Plots.plot!(Obal_P, Obal_O, label="O nullcline");
+            Plots.plot!(P_ts, O_ts, label="time series", left_margin = 8Plots.mm, bottom_margin = 8Plots.mm)
+        ),
 
-    #     Plots.plot(ylabel="Reservoirs", paleorun.output, ["atmocean.O_norm", "ocean.P_norm", "sedcrust.C_norm", "sedcrust.G_norm", "atmocean.A_norm", "ocean.U_norm"]),
-    #     # plot(paleorun.output, ylabel="P fluxes", ["fluxRtoOcean.flux_P", "fluxOceanBurial.flux_total_P"]), 
-    #     plot(paleorun.output, ylabel="O fluxes", ["fluxOceanBurial.flux_total_Corg", "fluxAtoLand.flux_O2", "fluxSedCrusttoAOcean.flux_Redox"]), 
+        Plots.plot(ylabel="Reservoirs", paleorun.output, ["atmocean.O_norm", "ocean.P_norm", "sedcrust.C_norm", "sedcrust.G_norm", "atmocean.A_norm", "ocean.U_norm"]),
+        # plot(paleorun.output, ylabel="P fluxes", ["fluxRtoOcean.flux_P", "fluxOceanBurial.flux_total_P"]), 
+        plot(paleorun.output, ylabel="O fluxes", ["fluxOceanBurial.flux_total_Corg", "fluxAtoLand.flux_O2", "fluxSedCrusttoAOcean.flux_Redox"]), 
 
-    #     Plots.plot(ylabel="TEMP (K)", paleorun.output, ["global.TEMP"]),
-    #     Plots.plot(title="Carbon isotopes",  paleorun.output, ["atmocean.A_delta", "ocean.DIC_delta", "atm.CO2_delta"], ylabel="delta 13C (per mil)"), # , xlims=(-1e6, 10e6), "ocean.mccb_delta", "sedcrust.C_delta" ; extrakwargs...),
-    #     Plots.plot(title="Uranium isotopes",  paleorun.output, ["fluxRtoOcean.flux_U.v_delta", "ocean.U.v_delta"], ylabel="d238U/235U"),
-    #     # plot(title="anoxia_burial_frac", paleorun.output, ["oceanfloor.anoxia_burial_frac"])
-    # )
+        Plots.plot(ylabel="TEMP (K)", paleorun.output, ["global.TEMP"]),
+        Plots.plot(title="Carbon isotopes",  paleorun.output, ["atmocean.A_delta", "ocean.DIC_delta", "atm.CO2_delta"], ylabel="delta 13C (per mil)"), # , xlims=(-1e6, 10e6), "ocean.mccb_delta", "sedcrust.C_delta" ; extrakwargs...),
+        Plots.plot(title="Uranium isotopes",  paleorun.output, ["fluxRtoOcean.flux_U.v_delta", "ocean.U.v_delta"], ylabel="d238U/235U"),
+        # plot(title="anoxia_burial_frac", paleorun.output, ["oceanfloor.anoxia_burial_frac"])
+    )
 
-    # pager(:newpage)
+    pager(:newpage)
     
-    # plot_anim_P_O(Pbal_P,Pbal_O,Obal_P,Obal_O,P_ts,O_ts,"plot_table3_1/$(fileroot)_anim.gif")
-# end
+    plot_anim_P_O(Pbal_P,Pbal_O,Obal_P,Obal_O,P_ts,O_ts,"plot_table3_1/$(fileroot)_anim.gif")
+end
 
-# # #################################
-# # # summary figures (single panels)
-# # #################################
-# linestyles=[:solid, :dash, :dashdot, :dashdotdot]
-# linewidths=[2, 1, 1, 1]
+# #################################
+# # summary figures (single panels)
+# #################################
+linestyles=[:solid, :dash, :dashdot, :dashdotdot]
+linewidths=[2, 1, 1, 1]
 
-# function plot_phaseplane_multi_trajectory(
-#     root::String,
-#     post_fix::Vector{String};
-#     plot_P_nullcline_end=true,  # false to omit 2nd P nullcline
-#     plot_fold_points=true, # false to omit fold points
-#     trajectory_labels=Dict(l=>l for l in post_fix),
-#     ts_start=15e6, # first time to use (eg to omit spinup)
-#     xlims=(0,5),
-#     ylims=(0,2.25),
-#     label_P_nullcline="P nullcline initial",
-#     label_P_nullcline_end="P nullcline final",
-#     label_O_nullcline="O nullcline"
-# )
-#     p2 = plot(; 
-#         xlims=xlims, ylims=ylims,
-#         xlabel="P_norm", ylabel="O (PAL)",
-#     )
+function plot_phaseplane_multi_trajectory(
+    root::String,
+    post_fix::Vector{String};
+    plot_P_nullcline_end=true,  # false to omit 2nd P nullcline
+    plot_fold_points=true, # false to omit fold points
+    trajectory_labels=Dict(l=>l for l in post_fix),
+    ts_start=15e6, # first time to use (eg to omit spinup)
+    xlims=(0,5),
+    ylims=(0,2.25),
+    label_P_nullcline="P nullcline initial",
+    label_P_nullcline_end="P nullcline final",
+    label_O_nullcline="O nullcline"
+)
+    p2 = plot(; 
+        xlims=xlims, ylims=ylims,
+        xlabel="P_norm", ylabel="O (PAL)",
+    )
 
-#     (; t_ts, O_ts, P_ts, dPdt_line, dOdt_line, dPdt_line_end, eqb_point, eqb_point_end, fold_points) =
-#         # P_O_A_U_columns_table3_1["modern_Bergman_lowO2U_Ppulse_rate1"] 
-#         P_O_A_U_columns_table3_1[root*post_fix[1]]
+    (; t_ts, O_ts, P_ts, dPdt_line, dOdt_line, dPdt_line_end, eqb_point, eqb_point_end, fold_points) =
+        # P_O_A_U_columns_table3_1["modern_Bergman_lowO2U_Ppulse_rate1"] 
+        P_O_A_U_columns_table3_1[root*post_fix[1]]
 
-#     Pbal_P, Pbal_O = SolverFunctionsOOEOAE2.tuples_to_coords(dPdt_line)   
-#     plot!(p2, Pbal_P, Pbal_O; color=:blue, label=label_P_nullcline)
+    Pbal_P, Pbal_O = SolverFunctionsOOEOAE2.tuples_to_coords(dPdt_line)   
+    plot!(p2, Pbal_P, Pbal_O; color=:blue, label=label_P_nullcline)
 
-#     if plot_P_nullcline_end
-#         Pbal_P_end, Pbal_O_end = SolverFunctionsOOEOAE2.tuples_to_coords(dPdt_line_end)
-#         plot!(p2, Pbal_P_end, Pbal_O_end; color=:blue, linestyle=:dash, label=label_P_nullcline_end)
-#     end
+    if plot_P_nullcline_end
+        Pbal_P_end, Pbal_O_end = SolverFunctionsOOEOAE2.tuples_to_coords(dPdt_line_end)
+        plot!(p2, Pbal_P_end, Pbal_O_end; color=:blue, linestyle=:dash, label=label_P_nullcline_end)
+    end
 
-#     Obal_P, Obal_O = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_line)
-#     plot!(p2, Obal_P, Obal_O, color=:red; label=label_O_nullcline)
+    Obal_P, Obal_O = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_line)
+    plot!(p2, Obal_P, Obal_O, color=:red; label=label_O_nullcline)
 
-#     Plots.scatter!(p2, [only(eqb_point)[1]], [only(eqb_point)[2]]; color=:red, markershape=:circle, markerstrokewidth=0, label=nothing)
-#     Plots.scatter!(p2, [only(eqb_point_end)[1]], [only(eqb_point_end)[2]]; color=:red, markershape=:circle, markerstrokewidth=0, label=nothing)
-#     if plot_fold_points
-#         Plots.scatter!(p2,  map(x->x[1], fold_points), map(x->x[2], fold_points); color=:blue, markershape=:circle, markerstrokewidth=0, label=nothing)
-#     end
+    Plots.scatter!(p2, [only(eqb_point)[1]], [only(eqb_point)[2]]; color=:red, markershape=:circle, markerstrokewidth=0, label=nothing)
+    Plots.scatter!(p2, [only(eqb_point_end)[1]], [only(eqb_point_end)[2]]; color=:red, markershape=:circle, markerstrokewidth=0, label=nothing)
+    if plot_fold_points
+        Plots.scatter!(p2,  map(x->x[1], fold_points), map(x->x[2], fold_points); color=:blue, markershape=:circle, markerstrokewidth=0, label=nothing)
+    end
 
-#     for (exptroot, ls, lw)  in zip(post_fix, linestyles, linewidths)
-#         (; t_ts, O_ts, P_ts) =
-#             P_O_A_U_columns_table3_1[root*exptroot]
-#         # omit times < ts_start
-#         i_first = findfirst(x->x >= ts_start, t_ts)
-#         plot!(
-#             p2, P_ts[i_first:end], O_ts[i_first:end];
-#             label=trajectory_labels[exptroot], color=:green, linestyle=ls, linewidth=lw,
-#         )
-#     end
+    for (exptroot, ls, lw)  in zip(post_fix, linestyles, linewidths)
+        (; t_ts, O_ts, P_ts) =
+            P_O_A_U_columns_table3_1[root*exptroot]
+        # omit times < ts_start
+        i_first = findfirst(x->x >= ts_start, t_ts)
+        plot!(
+            p2, P_ts[i_first:end], O_ts[i_first:end];
+            label=trajectory_labels[exptroot], color=:green, linestyle=ls, linewidth=lw,
+        )
+    end
 
-#     return p2
-# end
+    return p2
+end
 
-# function plot_multi_timeseries_P_norm(
-#     root::String,
-#     post_fix::Vector{String};
-#     trajectory_labels=Dict(l=>l for l in post_fix),
-#     xlims=(0e7, 3.5e7),
-#     # ylims=(0,2.25),
-# )
-#     p1_1 = plot(
-#         xlabel="tmodel (yr)",  xlims=xlims, 
-#         ylabel="P_norm",
-#         right_margin = 5Plots.mm,
-#     )
-#     for (expt, ls)  in zip(post_fix, linestyles)
-#         (; t_ts, P_ts) =
-#             P_O_A_U_columns_table3_1[root*expt] 
+function plot_multi_timeseries_P_norm(
+    root::String,
+    post_fix::Vector{String};
+    trajectory_labels=Dict(l=>l for l in post_fix),
+    xlims=(0e7, 3.5e7),
+    # ylims=(0,2.25),
+)
+    p1_1 = plot(
+        xlabel="tmodel (yr)",  xlims=xlims, 
+        ylabel="P_norm",
+        right_margin = 5Plots.mm,
+    )
+    for (expt, ls)  in zip(post_fix, linestyles)
+        (; t_ts, P_ts) =
+            P_O_A_U_columns_table3_1[root*expt] 
 
-#         plot!(
-#             p1_1, t_ts, P_ts;
-#             color=:green, linestyle=ls, label=trajectory_labels[expt],
-#         )
-#     end
+        plot!(
+            p1_1, t_ts, P_ts;
+            color=:green, linestyle=ls, label=trajectory_labels[expt],
+        )
+    end
 
-#     return p1_1
-# end
+    return p1_1
+end
 
-# function plot_multi_timeseries_P_input(
-#     root::String,
-#     post_fix::Vector{String};
-#     trajectory_labels=Dict(l=>l for l in post_fix),
-#     xlims=(0e7, 3.5e7),
-#     # ylims=(0,2.25),
-# )
-#     p1_1 = plot(
-#         xlabel="tmodel (yr)",  xlims=xlims, 
-#         ylabel="P input (1e10 mol yr-1)",
-#         right_margin = 5Plots.mm,
-#     )
-#     for (expt, ls)  in zip(post_fix, linestyles)
-#         (; paleorun, t_ts) =
-#             P_O_A_U_columns_table3_1[root*expt] 
+function plot_multi_timeseries_P_input(
+    root::String,
+    post_fix::Vector{String};
+    trajectory_labels=Dict(l=>l for l in post_fix),
+    xlims=(0e7, 3.5e7),
+    # ylims=(0,2.25),
+)
+    p1_1 = plot(
+        xlabel="tmodel (yr)",  xlims=xlims, 
+        ylabel="P input (1e10 mol yr-1)",
+        right_margin = 5Plots.mm,
+    )
+    for (expt, ls)  in zip(post_fix, linestyles)
+        (; paleorun, t_ts) =
+            P_O_A_U_columns_table3_1[root*expt] 
       
-#        P_input = (
-#                 PB.get_data(paleorun.output, "fluxRtoOcean.flux_P") # background constant P_weathering
-#             .+  PB.get_data(paleorun.output, "global.Ppulse") # Ppulse is applied directly to ocean.P_sms
-#         )
+       P_input = (
+                PB.get_data(paleorun.output, "fluxRtoOcean.flux_P") # background constant P_weathering
+            .+  PB.get_data(paleorun.output, "global.Ppulse") # Ppulse is applied directly to ocean.P_sms
+        )
      
-#         plot!(
-#             p1_1, t_ts, P_input./1e10;
-#             color=:green, linestyle=ls, label=trajectory_labels[expt],
-#         )
-#     end
+        plot!(
+            p1_1, t_ts, P_input./1e10;
+            color=:green, linestyle=ls, label=trajectory_labels[expt],
+        )
+    end
 
-#     return p1_1
-# end
-
-
-# # plot options
-# ts_xlims = (10e6, 35e6) # time series xlims (P perturbation starts at 15e6 yr)
+    return p1_1
+end
 
 
-# l = @layout[
-#     a b c
-# ]
-# p_sum = Plots.plot(
-#     plot_phaseplane_multi_trajectory(
-#         "modern_Bergman_sharp_switch_stable_oxic_", ["Ppulse1", "Ppulse2"];
-#         trajectory_labels=pulse_labels,
-#         xlims=(0, 2.1), ylims=(0, 0.75),
-#         plot_P_nullcline_end=false,
-#         label_P_nullcline=nothing, label_P_nullcline_end=nothing, label_O_nullcline=nothing,
-#     ),
-#         plot_phaseplane_multi_trajectory(
-#             "modern_Bergman_lowO2U_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
-#             trajectory_labels=rate_labels,
-#             xlims=(0, 4.2), ylims=(0, 1.5),
-#             plot_fold_points=false,
-#             label_P_nullcline=nothing, label_P_nullcline_end=nothing, label_O_nullcline=nothing,
-#         ),
-#             plot_phaseplane_multi_trajectory(
-#                 "modern_Bergman_sharp_switch_stable_oxic_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
-#                 trajectory_labels=rate_labels,
-#                 xlims=(0, 4.2), ylims=(0, 1.5),
-#                 label_P_nullcline=nothing, label_P_nullcline_end=nothing, label_O_nullcline=nothing,
-#             ),
+# plot options
+ts_xlims = (10e6, 35e6) # time series xlims (P perturbation starts at 15e6 yr)
+
+
+l = @layout[
+    a b c
+]
+p_sum = Plots.plot(
+    plot_phaseplane_multi_trajectory(
+        "modern_Bergman_sharp_switch_stable_oxic_", ["Ppulse1", "Ppulse2"];
+        trajectory_labels=pulse_labels,
+        xlims=(0, 2.1), ylims=(0, 0.75),
+        plot_P_nullcline_end=false,
+        label_P_nullcline=nothing, label_P_nullcline_end=nothing, label_O_nullcline=nothing,
+    ),
+        plot_phaseplane_multi_trajectory(
+            "modern_Bergman_lowO2U_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
+            trajectory_labels=rate_labels,
+            xlims=(0, 4.2), ylims=(0, 1.5),
+            plot_fold_points=false,
+            label_P_nullcline=nothing, label_P_nullcline_end=nothing, label_O_nullcline=nothing,
+        ),
+            plot_phaseplane_multi_trajectory(
+                "modern_Bergman_sharp_switch_stable_oxic_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
+                trajectory_labels=rate_labels,
+                xlims=(0, 4.2), ylims=(0, 1.5),
+                label_P_nullcline=nothing, label_P_nullcline_end=nothing, label_O_nullcline=nothing,
+            ),
             
-#     layout = l, 
-#     left_margin = 5Plots.mm, right_margin = 5Plots.mm, bottom_margin = 5Plots.mm,
-#     size=(900, 300),
-# )
+    layout = l, 
+    left_margin = 5Plots.mm, right_margin = 5Plots.mm, bottom_margin = 5Plots.mm,
+    size=(900, 300),
+)
 
-# display(p_sum)
-# savefig(p_sum, joinpath(output_figures_dir, "P_O_excitability_rate_dependent_oxic_20231227.svg"))
+display(p_sum)
+savefig(p_sum, joinpath(output_figures_dir, "P_O_excitability_rate_dependent_oxic_20231227.svg"))
 
 
-# l = @layout[
-#     grid(3,3)
-# ]
+l = @layout[
+    grid(3,3)
+]
 
-# p_sum_SI = Plots.plot(
-#     plot_phaseplane_multi_trajectory(
-#         "modern_Bergman_sharp_switch_stable_oxic_", ["Ppulse1"];
-#         trajectory_labels=pulse_labels,
-#         xlims=(0, 2.1), ylims=(0, 0.75),
-#         plot_P_nullcline_end=false,
-#         label_P_nullcline="P nullcline",
-#     ),
-#         plot_phaseplane_multi_trajectory(
-#             "modern_Bergman_lowO2U_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
-#             trajectory_labels=rate_labels,
-#             xlims=(0, 4.2), ylims=(0, 1.5),
-#             plot_fold_points=false,
-#         ),
-#             plot_phaseplane_multi_trajectory(
-#                 "modern_Bergman_sharp_switch_stable_oxic_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
-#                 trajectory_labels=rate_labels,
-#                 xlims=(0, 4.2), ylims=(0, 1.5)
-#             ),
+p_sum_SI = Plots.plot(
+    plot_phaseplane_multi_trajectory(
+        "modern_Bergman_sharp_switch_stable_oxic_", ["Ppulse1"];
+        trajectory_labels=pulse_labels,
+        xlims=(0, 2.1), ylims=(0, 0.75),
+        plot_P_nullcline_end=false,
+        label_P_nullcline="P nullcline",
+    ),
+        plot_phaseplane_multi_trajectory(
+            "modern_Bergman_lowO2U_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
+            trajectory_labels=rate_labels,
+            xlims=(0, 4.2), ylims=(0, 1.5),
+            plot_fold_points=false,
+        ),
+            plot_phaseplane_multi_trajectory(
+                "modern_Bergman_sharp_switch_stable_oxic_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
+                trajectory_labels=rate_labels,
+                xlims=(0, 4.2), ylims=(0, 1.5)
+            ),
             
 
-#     plot_phaseplane_multi_trajectory(
-#         "modern_Bergman_sharp_switch_stable_oxic_", ["Ppulse2"];
-#         trajectory_labels=pulse_labels,
-#         xlims=(0, 2.1), ylims=(0, 0.75),
-#         plot_P_nullcline_end=false,
-#         label_P_nullcline="P nullcline",
-#     ),
-#         plot_multi_timeseries_P_input(
-#             "modern_Bergman_lowO2U_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
-#             trajectory_labels=rate_labels,
-#             xlims=ts_xlims,
-#         ),
-#             plot_multi_timeseries_P_input(
-#                 "modern_Bergman_sharp_switch_stable_oxic_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
-#                 trajectory_labels=rate_labels,
-#                 xlims=ts_xlims,
-#             ),
+    plot_phaseplane_multi_trajectory(
+        "modern_Bergman_sharp_switch_stable_oxic_", ["Ppulse2"];
+        trajectory_labels=pulse_labels,
+        xlims=(0, 2.1), ylims=(0, 0.75),
+        plot_P_nullcline_end=false,
+        label_P_nullcline="P nullcline",
+    ),
+        plot_multi_timeseries_P_input(
+            "modern_Bergman_lowO2U_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
+            trajectory_labels=rate_labels,
+            xlims=ts_xlims,
+        ),
+            plot_multi_timeseries_P_input(
+                "modern_Bergman_sharp_switch_stable_oxic_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
+                trajectory_labels=rate_labels,
+                xlims=ts_xlims,
+            ),
            
 
-#     plot_multi_timeseries_P_norm(
-#         "modern_Bergman_sharp_switch_stable_oxic_", ["Ppulse1", "Ppulse2"];
-#         trajectory_labels=pulse_labels,
-#         xlims=ts_xlims,
-#     ),
-#         plot_multi_timeseries_P_norm(
-#             "modern_Bergman_lowO2U_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
-#             trajectory_labels=rate_labels,
-#             xlims=ts_xlims,
-#         ),
-#             plot_multi_timeseries_P_norm(
-#                 "modern_Bergman_sharp_switch_stable_oxic_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
-#                 trajectory_labels=rate_labels,
-#                 xlims=ts_xlims,
-#             ),
+    plot_multi_timeseries_P_norm(
+        "modern_Bergman_sharp_switch_stable_oxic_", ["Ppulse1", "Ppulse2"];
+        trajectory_labels=pulse_labels,
+        xlims=ts_xlims,
+    ),
+        plot_multi_timeseries_P_norm(
+            "modern_Bergman_lowO2U_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
+            trajectory_labels=rate_labels,
+            xlims=ts_xlims,
+        ),
+            plot_multi_timeseries_P_norm(
+                "modern_Bergman_sharp_switch_stable_oxic_Ppulse_", ["rate1", "rate2", "rate3", "rate4"];
+                trajectory_labels=rate_labels,
+                xlims=ts_xlims,
+            ),
             
-#     layout = l, 
-#     left_margin = 5Plots.mm, right_margin = 5Plots.mm, bottom_margin = 1Plots.mm,
-#     size=(1200, 1000),
-# )
+    layout = l, 
+    left_margin = 5Plots.mm, right_margin = 5Plots.mm, bottom_margin = 1Plots.mm,
+    size=(1200, 1000),
+)
 
-# display(p_sum_SI)
-# savefig(p_sum_SI, joinpath(output_figures_dir, "P_O_excitability_rate_dependent_oxic_SI_20231227.svg"))
+display(p_sum_SI)
+savefig(p_sum_SI, joinpath(output_figures_dir, "P_O_excitability_rate_dependent_oxic_SI_20231227.svg"))
 
 

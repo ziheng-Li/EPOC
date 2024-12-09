@@ -50,7 +50,7 @@ XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [compat]
-PALEOboxes = "0.20.4, 0.21"
+PALEOboxes = "0.21.30"
 PALEOcopse = "0.4"
 PALEOmodel = "0.15.24"
 

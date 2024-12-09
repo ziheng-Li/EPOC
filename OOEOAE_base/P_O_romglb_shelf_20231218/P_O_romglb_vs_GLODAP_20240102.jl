@@ -24,11 +24,15 @@ include("AtmReservoirs.jl")
 include("romglb_expts.jl")
 include("romglb_plots.jl")
 
-output_folder_name = "P_O_romglb_vs_GLODAP_20240102"
-# dropbox_output_dir = "/home/sd336/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/P_O_romglb_shelf_20231116" # will need to create this manually
-# dropbox_output_dir = "/Users/liziheng/Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/P_O_romglb_shelf_20231116"
-dropbox_output_dir = joinpath(@__DIR__, "../../figures/P_O_romglb_shelf_20231116")
 
+# Archive figures location
+# dropbox_output_dir = joinpath(@__DIR__, "../../figures/P_O_romglb_shelf_20231116")
+
+# Local figures
+isdir("figures") || mkdir("figures")
+dropbox_output_dir = "figures"
+
+output_folder_name = "P_O_romglb_vs_GLODAP_20240102"
 output_figures_dir = joinpath(dropbox_output_dir, output_folder_name)
 isdir(output_figures_dir) || mkdir(output_figures_dir)
 

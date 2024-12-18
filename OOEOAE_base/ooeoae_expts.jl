@@ -67,7 +67,13 @@ function ooeoae_expts(model, expts)
                 [0.0,   0.0,    2*size/duration,    0.0,             0.0])
             PB.setvalue!(PB.get_parameter(CO2pulse, "perturb_deltas"),
                 delta.*[1.0,    1.0,     1.0,       1.0,             1.0])
-        
+
+        elseif length(expt)==5 && expt[1] == "set_interp_forcing"
+            _, domian, reaction, force_times, force_values = expt #
+            force = PB.get_reaction(model, domian, reaction) 
+            PB.setvalue!(PB.get_parameter(force, "force_times"), force_times)
+            PB.setvalue!(PB.get_parameter(force, "force_values"), force_values)
+
         elseif length(expt) == 4 && expt[1] == "set_initial_value"
             # generic :initial_value set (set_initial_value, <domain>, <varname>, <initial_value)
             _, domname, varname, initial_value = expt            

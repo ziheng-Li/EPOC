@@ -5,12 +5,12 @@ import Interpolations
 import StochasticDiffEq
 import SciMLBase
 import CSV
-# import GLMakie
 
 using Plots
 
 import PALEOboxes as PB
 import PALEOmodel
+# import PALEOreactions
 import PALEOcopse
 
 # using Interpolations
@@ -20,6 +20,7 @@ include("../ReactionsOOEOAE_dev.jl")
 include("../SolverFunctionsOOEOAE2.jl")
 
 include("CarbBurial_dev.jl")
+include("Uranium.jl")
 
 include("../ooeoae_expts.jl")
 include("../ooeoae_plots.jl")
@@ -46,7 +47,7 @@ isdir(output_figures_dir) || mkdir(output_figures_dir)
 
 model = PB.create_model_from_config(
     joinpath(@__DIR__, "P_O_A_U_columns.yaml"), 
-    "model3", 
+    "model1", 
     modelpars=Dict(
         "CGconstant"=>false, 
         #  "Aconstant"=>true,
@@ -72,21 +73,19 @@ ooeoae_expts(
 # Experiments as listed in Table2 in README
 expts_table = [
 
-    # across the oxic threshold
     ("POA 2010", "preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_CO2_whitenoise", [("P_weathering", 3.9e10, 1.0, 0.0, 0.0), 
         # ("CO2pulse", age, pulse), 
         ("OPAinit", (0.4*3.7e19, 0.9*3.1e15, 4.07*3.193e18)),
         ("corg_burial_fac", 1.0), # Corgb oxic fold ~= 1.0, Corgb anoxic fold ~= 0.5
-        ("set_interp_forcing", "ocean", "force_corg_bf",    [0.0, 1e8, 1e8+1, 2e8, 2e8+1, 3e8, 3e8+1, 4e8, 4e8+1, 5e8], [0.9, 0.9, 1.1, 1.1, 1.12, 1.12, 1.2, 1.2, 1.4, 1.4]),
+        ("set_interp_forcing", "ocean", "force_corg_bf",    [0.0, 1e8, 1e8+1, 2e8, 2e8+1, 3e8, 3e8+1, 4e8, 4e8+1, 5e8], [0.9, 0.9, 1.1, 1.1, 1.12, 1.12, 1.2, 1.2, 1.3, 1.3]),
     ]),
 
-    # # across the anoxic threshold
-    # ("POA 2011", "preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise", [("P_weathering", 3.9e10, 1.0, 0.0, 0.0), 
-    #     # ("CO2pulse", age, pulse), 
-    #     ("OPAinit", (0.8369220346325966*3.7e19, 3.7066508042082518*3.1e15, 4.072859528806692*3.193e18)),
-    #     ("corg_burial_fac", 1.0), # Corgb oxic fold ~= 1.0, Corgb anoxic fold ~= 0.5
-    #     ("set_interp_forcing", "ocean", "force_corg_bf",    [0.0, 1e8, 1e8+1, 2e8, 2e8+1, 3e8, 3e8+1, 4e8, 4e8+1, 5e8], [0.4, 0.4, 0.45, 0.45, 0.485, 0.485, 0.5, 0.5, 0.7, 0.7]),
-    # ]),
+    ("POA 2011", "preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise", [("P_weathering", 3.9e10, 1.0, 0.0, 0.0), 
+        # ("CO2pulse", age, pulse), 
+        ("OPAinit", (0.8369220346325966*3.7e19, 3.7066508042082518*3.1e15, 4.072859528806692*3.193e18)),
+        ("corg_burial_fac", 1.0), # Corgb oxic fold ~= 1.0, Corgb anoxic fold ~= 0.5
+        ("set_interp_forcing", "ocean", "force_corg_bf",    [0.0, 1e8, 1e8+1, 2e8, 2e8+1, 3e8, 3e8+1, 4e8, 4e8+1, 5e8], [0.4, 0.4, 0.45, 0.45, 0.485, 0.485, 0.5, 0.5, 0.7, 0.7]),
+    ]),
 
 ]
 
@@ -103,6 +102,12 @@ for (expt_id, fileroot, vector_pars) in expts_table
     )
 
     tspan = (0.0, 5e8) # yr # tspan=(-1000e6, 0)
+
+    #########################################################
+    # Initialize
+    #########################################################
+
+    initial_state, modeldata = PALEOmodel.initialize!(model)
 
     #########################################################
     # Initialize
@@ -146,7 +151,7 @@ for (expt_id, fileroot, vector_pars) in expts_table
 
     amplitude_noise_v = [amplitude_noise1, amplitude_noise2, amplitude_noise3, amplitude_noise4]
 
-    for i in [1]
+    for i in [1, 4]
         amplitude_noise = amplitude_noise_v[i]
 
         function g(du, u, p, t)
@@ -214,7 +219,6 @@ for (expt_id, fileroot, vector_pars) in expts_table
         display(p_sum)
         savefig(p_sum, joinpath(output_figures_dir, fileroot * "_$(amplitude_noise[1])" * ".svg"))
 
-        
         # ###########################################################
         # # phase plane plot with nullclines and folds
         # ########################################################
@@ -325,32 +329,32 @@ for (expt_id, fileroot, vector_pars) in expts_table
 end
 
 
-# (;expt_id, paleorun, t_ts, A_ts, P_ts, O_ts, DIC_delta,) = P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_CO2_whitenoise_0.0"]
-# plot_oxic_0 = plot(t_ts, DIC_delta, ylabel="δ¹³C (‰)", color=:orange, label=false)
-# (;expt_id, paleorun, t_ts, A_ts, P_ts, O_ts, DIC_delta,) = P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_CO2_whitenoise_0.0003"]
-# corg_bf = PB.get_data(paleorun.output, "ocean.corg_bf")
-# plot_oxic_corg_bf = plot(t_ts, corg_bf, label=false, xlabel="", ylims=(0.8, 1.4))
-# plot_oxic_0003 = plot(t_ts, DIC_delta, ylabel="δ¹³C (‰)", color=:blue, label=false)
+(;expt_id, paleorun, t_ts, A_ts, P_ts, O_ts, DIC_delta,) = P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_CO2_whitenoise_0.0"]
+plot_oxic_0 = plot(t_ts, DIC_delta, ylabel="δ¹³C (‰)", color=:orange, label=false)
+(;expt_id, paleorun, t_ts, A_ts, P_ts, O_ts, DIC_delta,) = P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_CO2_whitenoise_0.0003"]
+corg_bf = PB.get_data(paleorun.output, "ocean.corg_bf")
+plot_oxic_corg_bf = plot(t_ts, corg_bf, label=false, xlabel="", ylims=(0.8, 1.4))
+plot_oxic_0003 = plot(t_ts, DIC_delta, ylabel="δ¹³C (‰)", color=:blue, label=false)
 
-# (;expt_id, paleorun, t_ts, A_ts, P_ts, O_ts, DIC_delta,) = P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise_0.0"]
-# plot_anoxic_0 = plot(t_ts, DIC_delta, ylabel="δ¹³C (‰)", color=:orange, label=false)
-# (;expt_id, paleorun, t_ts, A_ts, P_ts, O_ts, DIC_delta,) = P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise_0.0003"]
-# corg_bf = PB.get_data(paleorun.output, "ocean.corg_bf")
-# plot_anoxic_corg_bf = plot(t_ts, corg_bf, label=false, xlabel="", ylims=(0.2, 0.8))
-# plot_anoxic_0003 = plot(t_ts, DIC_delta, ylabel="δ¹³C (‰)", color=:blue, label=false)
+(;expt_id, paleorun, t_ts, A_ts, P_ts, O_ts, DIC_delta,) = P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise_0.0"]
+plot_anoxic_0 = plot(t_ts, DIC_delta, ylabel="δ¹³C (‰)", color=:orange, label=false)
+(;expt_id, paleorun, t_ts, A_ts, P_ts, O_ts, DIC_delta,) = P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise_0.0003"]
+corg_bf = PB.get_data(paleorun.output, "ocean.corg_bf")
+plot_anoxic_corg_bf = plot(t_ts, corg_bf, label=false, xlabel="", ylims=(0.2, 0.8))
+plot_anoxic_0003 = plot(t_ts, DIC_delta, ylabel="δ¹³C (‰)", color=:blue, label=false)
 
-#         l = @layout[
-#             grid(6,1)
-#         ]
+        l = @layout[
+            grid(6,1)
+        ]
 
-#         p_sum = Plots.plot(
-#             plot_oxic_corg_bf,
-#             plot_oxic_0, plot_oxic_0003,
-#             plot_anoxic_corg_bf,
-#             plot_anoxic_0, plot_anoxic_0003,
-#             layout = l, 
-#             left_margin = 5Plots.mm, bottom_margin = 1Plots.mm,
-#             size=(400, 800)
-#         )
-#         display(p_sum)
-#         savefig(p_sum, joinpath(output_figures_dir, "Whitenoise_oxic_anoxic_sum_20240511.svg"))
+        p_sum = Plots.plot(
+            plot_oxic_corg_bf,
+            plot_oxic_0, plot_oxic_0003,
+            plot_anoxic_corg_bf,
+            plot_anoxic_0, plot_anoxic_0003,
+            layout = l, 
+            left_margin = 5Plots.mm, bottom_margin = 1Plots.mm,
+            size=(400, 800)
+        )
+        display(p_sum)
+        savefig(p_sum, joinpath(output_figures_dir, "Whitenoise_oxic_anoxic_sum_20240511.svg"))

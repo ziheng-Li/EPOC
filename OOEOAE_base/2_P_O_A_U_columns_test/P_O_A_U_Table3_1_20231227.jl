@@ -189,7 +189,7 @@ for (expt_id, fileroot, vector_pars) in expts_table
 
     pager(:newpage)
     
-    plot_anim_P_O(Pbal_P,Pbal_O,Obal_P,Obal_O,P_ts,O_ts,"plot_table3_1/$(fileroot)_anim.gif")
+    # plot_anim_P_O(Pbal_P,Pbal_O,Obal_P,Obal_O,P_ts,O_ts,"plot_table3_1/$(fileroot)_anim.gif")
 end
 
 # #################################

@@ -45,6 +45,10 @@ Base.@kwdef mutable struct ReactionOceanBurialColumn{P} <: PB.AbstractReaction
             description="marine organic carbon burial rate"),
         PB.ParDouble("corg_burial_fac", 1.0, units="",
             description="multiplier for marine organic carbon burial rate (and C:P burial ratio)"),
+        PB.ParBool("use_corg_bf", false,
+            description="true to multiply Corg and P burial fluxes by a factor read from Variable global.SHELF_AREA_NORM"),
+        PB.ParBool("use_shelf_area_norm", false,
+            description="true to multiply Corg and P burial fluxes by a factor read from Variable global.SHELF_AREA_NORM"),
         PB.ParDouble("k_anox", 1000.0,
             description="anoxia function sharpness"),
         PB.ParDouble("k_oxic", 250.0,
@@ -95,7 +99,6 @@ function PB.set_model_geometry(rj::ReactionOceanBurialColumn, model::PB.Model)
     # floorgrid = PB.Grids.UnstructuredVectorGrid(ncells=ocean_cells)
 
     # set minimal grid for 100 columns
-    ocean_cells = rj.pars.ncols.v # Number of cells (= ocean Domain size)
     isurf = collect(range(1, length=ocean_cells))   # [1]
     ifloor = collect(range(1, length=ocean_cells))
     oceangrid = PB.Grids.UnstructuredVectorGrid(ncells=ocean_cells) # 
@@ -146,6 +149,16 @@ function PB.register_methods!(rj::ReactionOceanBurialColumn)
         PB.VarPropScalar("oceanfloor.anoxia_burial_frac", "", "fraction of Corg burial in anoxic condition")
     ]
 
+    if rj.pars.use_corg_bf[]
+        push!(vars_do, PB.VarDepScalar("corg_bf", "", "multiplier for corg_burial_fac")) # the multiplier of a mutiplier
+    end
+    PB.setfrozen!(rj.pars.use_corg_bf) # can't be changed as needs a new Variable
+
+    if rj.pars.use_shelf_area_norm[]
+        push!(vars_do, PB.VarDepScalar("global.SHELF_AREA_NORM", "", "normalized shelf area forcing for marine Corg and P burial"))
+    end
+    PB.setfrozen!(rj.pars.use_shelf_area_norm) # can't be changed as needs a new Variable
+
     if CIsotopeType <: PB.AbstractIsotopeScalar
         append!(vars_do, [
                 # C isotopes
@@ -176,7 +189,7 @@ function PB.register_methods!(rj::ReactionOceanBurialColumn)
     # end
 
     fluxOceanBurial = PB.Fluxes.FluxContrib(
-        "fluxOceanBurial.flux_", ["Corg::$CIsotopeType", "P", "U_anoxic::$UIsotopeType","U_other::$UIsotopeType"],
+        "fluxOceanBurial.flux_", ["Corg::$CIsotopeType", "P"],
     )
 
     PB.add_method_do!(
@@ -210,14 +223,20 @@ function setup_ocean_burial_column(m::PB.ReactionMethod, (vars, ), cellrange::PB
     return nothing
 end
 
-function do_ocean_burial_column(m::PB.ReactionMethod, (vars, fluxBurial), cellrange::PB.AbstractCellRange, deltat)
+function do_ocean_burial_column(m::PB.ReactionMethod, pars, (vars, fluxBurial), cellrange::PB.AbstractCellRange, deltat)
     rj = m.reaction
     CIsotopeType, UIsotopeType = m.p
 
     newp_n = newp_norm(vars.P_norm[])
     mocb_n = mocb_norm(newp_n)
-    mocb = mocb_n * rj.pars.k_mocb[] * rj.pars.corg_burial_fac[]
 
+    shelf_area_norm = pars.use_shelf_area_norm[] ? vars.SHELF_AREA_NORM[] : 1.0
+
+    corg_bf = pars.use_corg_bf[] ? vars.corg_bf[] : 1.0
+    corg_bf_combined = pars.corg_burial_fac[] * corg_bf
+
+    mocb = mocb_n * rj.pars.k_mocb[] * shelf_area_norm * corg_bf_combined
+                                
     vars.anoxia_burial_frac[] = 0.0
 
     for i in cellrange.indices
@@ -233,7 +252,7 @@ function do_ocean_burial_column(m::PB.ReactionMethod, (vars, fluxBurial), cellra
         mocb_isotope = @PB.isotope_totaldelta(CIsotopeType, local_Corgburial, vars.mocb_delta[i])
 
         vars.local_anoxia[i] = local_anoxia(newp_n, vars.O_norm[], vars.O2_U[i], rj.pars.k_anox.v)
-        vars.local_CPsea[i] = CPsea(vars.local_anoxia[i], rj.pars.k_oxic.v, rj.pars.k_anoxic.v)*rj.pars.corg_burial_fac.v
+        vars.local_CPsea[i] = CPsea(vars.local_anoxia[i], rj.pars.k_oxic.v, rj.pars.k_anoxic.v)*corg_bf_combined
 
         # TODO debugging AD Jacobian
         # if !isa(vars.local_anoxia[i], Float64)

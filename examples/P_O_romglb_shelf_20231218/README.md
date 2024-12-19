@@ -38,6 +38,21 @@ Requires updated model configuration:
 - Additional oceanhlatgyresurface: Domain, so nutrients (for restoring) can be added only to hlat, gyre surface boxes
  (requires updated ReactionOceanTransportRomanielloShelf)
 
+## Installation
+
+These examples use `ReactionOceanTransportRomanielloShelf` to read Matlab data files with the
+3-column box model geometry from [Romaniello2010](@cite).
+
+The Matlab datafiles are available as a zip file from <https://github.com/PALEOtoolkit/PALEOocean.jl/releases>,
+generated from the Matlab model code available as Supplementary Information to [Romaniello2010](@cite).
+
+The examples assume the zip file has been downloaded and unpacked to subfolder `romaniello2010_transport`, the script
+`download_romaniello2010_files.jl` provides a function to do this:
+
+    include("download_romaniello2010_files.jl")
+
+    download_romaniello2010_files()  # download and unzip
+
 ## Tuning shelf areas to prescribed linear Corg burial vs O2 utilisation function
 
     julia> include("P_O_romglb_baseline2_20231218.jl")

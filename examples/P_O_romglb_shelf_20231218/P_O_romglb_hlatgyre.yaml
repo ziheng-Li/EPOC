@@ -12,6 +12,7 @@ model_BioProdPrest_Martin_Ozaki2011:
         O2_atm_restore: 3.7e19
         O2_ocean_restore: 3.22e17
         constant_O: false
+        matdir: romaniello2010_transport  # folder with data files from Romaniello (2010) GGG
         
     domains:
      

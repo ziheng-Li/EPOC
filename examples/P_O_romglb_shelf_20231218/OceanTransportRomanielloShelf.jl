@@ -28,6 +28,8 @@ Base.@kwdef mutable struct ReactionOceanTransportRomanielloShelf{P} <: PB.Abstra
     base::PB.ReactionBase
 
     pars::P = PB.ParametersTuple([
+        PB.ParString("matdir", "romaniello2010_transport",
+            description="folder with Romaniello (2010) transport and geometry data files"),
         PB.ParStringVec("shelf_names", ["shelf"],
             description="names for additional shelf columns"),
         PB.ParDoubleVec("shelf_areas", [2e13], units="m-2",
@@ -91,8 +93,7 @@ end
 
 function read_datafiles(rj::ReactionOceanTransportRomanielloShelf)
 
-    # matdir = joinpath(PALEOreactions.srcdir(), "ocean") # directory containing .mat files
-    matdir = @__DIR__
+    matdir = rj.pars.matdir[] # folder containing mat files
 
     # rom keys:
     # rom[<colname>]                        indices of boxes for this column, ordered surface to floor

@@ -4,6 +4,13 @@ You can find the data from [GLODAP](https://www.ncei.noaa.gov/access/ocean-carbo
 
 You can download the data from [GLODAP_2020](https://www.ncei.noaa.gov/data/oceans/ncei/ocads/data/0210813/)
 
+### Downloading GLODAP data
+
+Script to download files to this folder:
+
+    include("download_glodap2020_files.jl")
+    download_glodap2020_files()
+
 ### Variables
 NB: the keys or column names in the Datasets have a prefix `G2` and some of them have postfix `f` or `qc`.
 - Columns with no postfix is the real data

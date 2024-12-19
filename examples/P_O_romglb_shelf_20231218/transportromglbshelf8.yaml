@@ -10,6 +10,7 @@ transportromglb: &oceantransport
     # NB: requires addtional oceanhlatgyresurface Domain (for nutrient input)
     class: ReactionOceanTransportRomanielloShelf
     parameters:
+        matdir:         external%matdir
         shelf_names:          ["shelf1", "shelf2", "shelf3", "shelf4", "shelf5", "shelf6", "shelf7", "shelf8", "shelf9", "shelf10", "shelf11", "shelf12", "shelf13", "shelf14", "shelf15", "shelf16", "shelf17", "shelf18", "shelf19", "shelf20", "shelf21"]
         shelf_areas:          [0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e13, 0.16e3, 0.16e13] # sum of the total area = 2.88e13
         shelf_depths:         [150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0, 150.0] # m

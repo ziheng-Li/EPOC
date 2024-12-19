@@ -122,7 +122,7 @@ Scripts are modified to reproduce output and save in ./figures/ instead of Dropb
 
     Instructions for PNAS version, unchanged for Sci Adv version:
         - Step 1 script
-            OOEOAE_base/2_P_O_A_U_columns_test/_O_A_U_Table4_1_excitability_sum_20231202.jl ->
+            OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_1_excitability_sum_20231202.jl ->
         - Step 2 script plot into dropbox
             Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_1_excitability_sum ->
         - Step 3 diff versions of plot deposit
@@ -138,6 +138,8 @@ Scripts are modified to reproduce output and save in ./figures/ instead of Dropb
     Plausibly the same problem for the anoxic transition (harder to tell as the range in corg_bf is smaller) 
 
     So it looks like the checked in script is not the one that was used to create the plot !?
+
+    TODO  should set C, G reservoirs constant (requires PALEOboxes bugfix)
 
     2_P_O_A_U_columns_test/P_O_A_U_Table4_1_noise_SDE_change_regime_20240501.jl
         -> 2_P_O_A_U_columns_test/figures/P_O_A_U_Table7_white_noise_change_regimes/

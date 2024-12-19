@@ -7,6 +7,7 @@ import SciMLBase
 import CSV
 
 using Plots
+import GLMakie # import not using so doesn't conflict with Plots
 
 import PALEOboxes as PB
 import PALEOmodel
@@ -39,6 +40,10 @@ dropbox_output_dir = "figures"
 output_figures_dir = joinpath(dropbox_output_dir, "P_O_A_U_Table7_white_noise_change_regimes")
 isdir(output_figures_dir) || mkdir(output_figures_dir)
 
+######################################
+# key parameters that control plot appearance
+include("expt_plot3D.jl")
+
 #####################################################
 # simplified dA/dt = oxidw + ocdeg + carbw + ccdeg - mocb - mccb
 # -locb = 0, no -sfw
@@ -49,7 +54,8 @@ model = PB.create_model_from_config(
     joinpath(@__DIR__, "P_O_A_U_columns.yaml"), 
     "model1", 
     modelpars=Dict(
-        "CGconstant"=>false, 
+        "CGconstant"=>false,
+        # "CGconstant"=>true,  # TODO should be constant !
         #  "Aconstant"=>true,
         "state_norm"=>true,
         # "state_norm"=>false,

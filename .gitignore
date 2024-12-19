@@ -3,3 +3,4 @@ LocalPreferences.toml
 figures
 .xslx
 .vscode
+.DS_Store

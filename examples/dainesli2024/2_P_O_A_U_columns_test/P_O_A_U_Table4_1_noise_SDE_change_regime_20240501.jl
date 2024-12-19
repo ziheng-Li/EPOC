@@ -16,8 +16,8 @@ import PALEOcopse
 # using Interpolations
 
 # ReactionsOOEOAE_dev add Cisotopes, link DIC_sms -= local_Corgburial!
-include("../ReactionsOOEOAE_dev.jl")
-include("../SolverFunctionsOOEOAE2.jl")
+include("../../../src/ReactionsOOEOAE_dev.jl")
+include("../../../src/SolverFunctionsOOEOAE2.jl")
 
 include("CarbBurial_dev.jl")
 include("Uranium.jl")
@@ -30,7 +30,7 @@ include("../ooeoae_plots.jl")
 # include("expt_plot3D.jl")
 
 # Archived figures
-dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+# dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
 
 # Local figures
 isdir("figures") || mkdir("figures")
@@ -219,100 +219,100 @@ for (expt_id, fileroot, vector_pars) in expts_table
         display(p_sum)
         savefig(p_sum, joinpath(output_figures_dir, fileroot * "_$(amplitude_noise[1])" * ".svg"))
 
-        # ###########################################################
-        # # phase plane plot with nullclines and folds
-        # ########################################################
-        # include_jacobian = true
-        # # poand: initial_state, poand_end: end_state
-        # poand = SolverFunctionsOOEOAE2.POAstatenormDeriv(model, modeldata; fixed_values=initial_state, fixed_t=tspan[1], include_jacobian)
-        # if include_jacobian
-        #     # d/dP_m(dP_n/dt) component of Jacobian to identify folds
-        #     # -ve is an attracting surface, +ve is repelling
-        #     global poand_jac_P_P(P_n, O_n, A_n) = SolverFunctionsOOEOAE2.jacobian(poand, P_n, O_n, A_n)[1, 1]
-        #     # global poand_jac_P_P_end(P_n, O_n, A_n) = SolverFunctionsOOEOAE2.jacobian(poand_end, P_n, O_n, A_n)[1, 1]
-        # else
-        #     # label everything as 'attracting'
-        #     global poand_jac_P_P(P_n, O_n, A_n) = -1.0 
-        #     # global poand_jac_P_P_end(P_n, O_n, A_n) = -1.0 
-        # end
+        ###########################################################
+        # phase plane plot with nullclines and folds
+        ########################################################
+        include_jacobian = true
+        # poand: initial_state, poand_end: end_state
+        poand = SolverFunctionsOOEOAE2.POAstatenormDeriv(model, modeldata; fixed_values=initial_state, fixed_t=tspan[1], include_jacobian)
+        if include_jacobian
+            # d/dP_m(dP_n/dt) component of Jacobian to identify folds
+            # -ve is an attracting surface, +ve is repelling
+            global poand_jac_P_P(P_n, O_n, A_n) = SolverFunctionsOOEOAE2.jacobian(poand, P_n, O_n, A_n)[1, 1]
+            # global poand_jac_P_P_end(P_n, O_n, A_n) = SolverFunctionsOOEOAE2.jacobian(poand_end, P_n, O_n, A_n)[1, 1]
+        else
+            # label everything as 'attracting'
+            global poand_jac_P_P(P_n, O_n, A_n) = -1.0 
+            # global poand_jac_P_P_end(P_n, O_n, A_n) = -1.0 
+        end
 
-        # # get nullcline surfaces
-        # (;dPdt_surf, dOdt_surf, dAdt_surf, A_grid) = SolverFunctionsOOEOAE2.find_nullclines_POA(poand; P_lims, O_lims, A_lims=(2.0, A_lims[2]))
+        # get nullcline surfaces
+        (;dPdt_surf, dOdt_surf, dAdt_surf, A_grid) = SolverFunctionsOOEOAE2.find_nullclines_POA(poand; P_lims, O_lims, A_lims=(2.0, A_lims[2]))
     
     
-        # ########################################################
-        # # dA/dt = 0 surface, for initial_state
-        # dAdt_surf_P, dAdt_surf_O, dAdt_surf_A = SolverFunctionsOOEOAE2.tuples_to_coords(dAdt_surf)
-        # # dA/dt = 0 intersection with dP/dt = 0   
-        # dAdt_dPdt_line_POA = only(SolverFunctionsOOEOAE2.Isoline.find_isolines((P_n, O_n, A_n)->poand(P_n, O_n, A_n)[3], dPdt_surf))
-        # # split at folds
-        # dAdt_dPdt_linesegs_POA = SolverFunctionsOOEOAE2.split_line_sign_f(dAdt_dPdt_line_POA, poand_jac_P_P)
+        ########################################################
+        # dA/dt = 0 surface, for initial_state
+        dAdt_surf_P, dAdt_surf_O, dAdt_surf_A = SolverFunctionsOOEOAE2.tuples_to_coords(dAdt_surf)
+        # dA/dt = 0 intersection with dP/dt = 0   
+        dAdt_dPdt_line_POA = only(SolverFunctionsOOEOAE2.Isoline.find_isolines((P_n, O_n, A_n)->poand(P_n, O_n, A_n)[3], dPdt_surf))
+        # split at folds
+        dAdt_dPdt_linesegs_POA = SolverFunctionsOOEOAE2.split_line_sign_f(dAdt_dPdt_line_POA, poand_jac_P_P)
 
-        # ########################################################
+        ########################################################
 
-        # ########################################################
-        # # dO/dt = 0 surface
-        # dOdt_surf_P, dOdt_surf_O, dOdt_surf_A = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_surf)
-        # # dO/dt = 0 intersection with dP/dt = 0
-        # dOdt_dPdt_line_POA = only(SolverFunctionsOOEOAE2.Isoline.find_isolines((P_n, O_n, A_n)->poand(P_n, O_n, A_n)[2], dPdt_surf))
-        # # split at folds
-        # dOdt_dPdt_linesegs_POA = SolverFunctionsOOEOAE2.split_line_sign_f(dOdt_dPdt_line_POA, poand_jac_P_P)
-        # ########################################################
+        ########################################################
+        # dO/dt = 0 surface
+        dOdt_surf_P, dOdt_surf_O, dOdt_surf_A = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_surf)
+        # dO/dt = 0 intersection with dP/dt = 0
+        dOdt_dPdt_line_POA = only(SolverFunctionsOOEOAE2.Isoline.find_isolines((P_n, O_n, A_n)->poand(P_n, O_n, A_n)[2], dPdt_surf))
+        # split at folds
+        dOdt_dPdt_linesegs_POA = SolverFunctionsOOEOAE2.split_line_sign_f(dOdt_dPdt_line_POA, poand_jac_P_P)
+        ########################################################
         
-        # # find folds (P component of Jacobian = 0)
-        # folds_dPdt_lines_POA = SolverFunctionsOOEOAE2.Isoline.find_isolines(poand_jac_P_P, dPdt_surf)
-        # # order folds so first index is lowest P
-        # if length(folds_dPdt_lines_POA) == 2
-        #     f_1, f_2 = folds_dPdt_lines_POA[1], folds_dPdt_lines_POA[2]
-        #     P_1, P_2 = first(f_1)[1], first(f_2)[1]
-        #     if P_1 > P_2
-        #         folds_dPdt_lines_POA[1:2] .= f_2, f_1
-        #     end
-        # end
+        # find folds (P component of Jacobian = 0)
+        folds_dPdt_lines_POA = SolverFunctionsOOEOAE2.Isoline.find_isolines(poand_jac_P_P, dPdt_surf)
+        # order folds so first index is lowest P
+        if length(folds_dPdt_lines_POA) == 2
+            f_1, f_2 = folds_dPdt_lines_POA[1], folds_dPdt_lines_POA[2]
+            P_1, P_2 = first(f_1)[1], first(f_2)[1]
+            if P_1 > P_2
+                folds_dPdt_lines_POA[1:2] .= f_2, f_1
+            end
+        end
 
-        # # find where dA/dt=0 along line with dO/dt=0 and dP/dt=0
-        # eqb_point = only(SolverFunctionsOOEOAE2.Isoline.find_zeros_line((P_n, O_n, A_n)->poand(P_n, O_n, A_n)[3], dOdt_dPdt_line_POA; verbose=true))
-        # @info "eqb_point POA: $eqb_point"
+        # find where dA/dt=0 along line with dO/dt=0 and dP/dt=0
+        eqb_point = only(SolverFunctionsOOEOAE2.Isoline.find_zeros_line((P_n, O_n, A_n)->poand(P_n, O_n, A_n)[3], dOdt_dPdt_line_POA; verbose=true))
+        @info "eqb_point POA: $eqb_point"
 
-        # A_target_val = eqb_point[3] # roughly midpoint of limit cycle
-        # A_ks = findfirst(x -> x > A_target_val, A_grid)
-        # A_val = A_grid[A_ks] # actual A used
-        # dPdt_linesegs_const_A = SolverFunctionsOOEOAE2.split_line_sign_f(dPdt_surf[:, A_ks], poand_jac_P_P)
-        # Obal_P, Obal_O, _ = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_surf[:, 1]) # dO/dt = 0 is independent of A so just pick first A
+        A_target_val = eqb_point[3] # roughly midpoint of limit cycle
+        A_ks = findfirst(x -> x > A_target_val, A_grid)
+        A_val = A_grid[A_ks] # actual A used
+        dPdt_linesegs_const_A = SolverFunctionsOOEOAE2.split_line_sign_f(dPdt_surf[:, A_ks], poand_jac_P_P)
+        Obal_P, Obal_O, _ = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_surf[:, 1]) # dO/dt = 0 is independent of A so just pick first A
 
-        # O_val = eqb_point[2] # roughly midpoint of limit cycle
-        # dPdt_line_const_O, dAdt_line_const_O = SolverFunctionsOOEOAE2.find_nullclines_const_O(poand, O_val; P_lims, A_lims)
-        # # split at folds
-        # dPdt_linesegs_const_O = SolverFunctionsOOEOAE2.split_line_sign_f(dPdt_line_const_O, poand_jac_P_P)
+        O_val = eqb_point[2] # roughly midpoint of limit cycle
+        dPdt_line_const_O, dAdt_line_const_O = SolverFunctionsOOEOAE2.find_nullclines_const_O(poand, O_val; P_lims, A_lims)
+        # split at folds
+        dPdt_linesegs_const_O = SolverFunctionsOOEOAE2.split_line_sign_f(dPdt_line_const_O, poand_jac_P_P)
 
-        # fig, axs, pltobj = plot_3D_critical_manifold(dPdt_surf, A_grid, folds_dPdt_lines_POA)
+        fig, axs, pltobj = plot_3D_critical_manifold(dPdt_surf, A_grid, folds_dPdt_lines_POA)
 
-        # # add intersection lines of O_nullcline and slow-manifold surface
-        # SolverFunctionsOOEOAE2.plot_segments!(
-        #     GLMakie.lines!, axs, dOdt_dPdt_linesegs_POA, [1, 2, 3], (:dash, :solid), nothing; 
-        #     color=:red, linewidth=glm_linewidth,
-        # )
-        # # add intersection lines of A_nullcline and slow-manifold surface
-        # SolverFunctionsOOEOAE2.plot_segments!(
-        #     GLMakie.lines!, axs, dAdt_dPdt_linesegs_POA, [1, 2, 3], (:dash, :solid), nothing;
-        #     color=:black, linewidth=glm_linewidth,
-        # )
-        # # add limit cycle time series
-        # (; element_counts, start_point_index, end_point_index) = SolverFunctionsOOEOAE2.find_periodic(P_ts, O_ts, t_ts, eqb_point) 
-        # GLMakie.lines!(
-        #     axs,
-        #     P_ts, O_ts, A_ts;
-        #     # P_ts[start_point_index:end_point_index], O_ts[start_point_index:end_point_index], A_ts[start_point_index:end_point_index];
-        #     color=:green, linestyle=:solid, linewidth=2*glm_linewidth,
-        # )
+        # add intersection lines of O_nullcline and slow-manifold surface
+        SolverFunctionsOOEOAE2.plot_segments!(
+            GLMakie.lines!, axs, dOdt_dPdt_linesegs_POA, [1, 2, 3], (:dash, :solid), nothing; 
+            color=:red, linewidth=glm_linewidth,
+        )
+        # add intersection lines of A_nullcline and slow-manifold surface
+        SolverFunctionsOOEOAE2.plot_segments!(
+            GLMakie.lines!, axs, dAdt_dPdt_linesegs_POA, [1, 2, 3], (:dash, :solid), nothing;
+            color=:black, linewidth=glm_linewidth,
+        )
+        # add limit cycle time series
+        (; element_counts, start_point_index, end_point_index) = SolverFunctionsOOEOAE2.find_periodic(P_ts, O_ts, t_ts, eqb_point) 
+        GLMakie.lines!(
+            axs,
+            P_ts, O_ts, A_ts;
+            # P_ts[start_point_index:end_point_index], O_ts[start_point_index:end_point_index], A_ts[start_point_index:end_point_index];
+            color=:green, linestyle=:solid, linewidth=2*glm_linewidth,
+        )
 
-        # GLMakie.scatter!(axs, eqb_point; color=:red, markersize=glm_eqb_markersize,)
-        # GLMakie.scatter!(axs, (P_ts[end], O_ts[end], A_ts[end]); color=:blue, markersize=glm_eqb_markersize,)
+        GLMakie.scatter!(axs, eqb_point; color=:red, markersize=glm_eqb_markersize,)
+        GLMakie.scatter!(axs, (P_ts[end], O_ts[end], A_ts[end]); color=:blue, markersize=glm_eqb_markersize,)
 
-        # GLMakie.save(joinpath(output_figures_dir, 
-        #     fileroot * "_$(amplitude_noise[1])" * ".png"), 
-        #     fig; px_per_unit=5, # Makie 0.20 increase resolution of saved figure (600 x 5 = 3000 pixels)
-        # ) # closes window
+        GLMakie.save(joinpath(output_figures_dir, 
+            fileroot * "_$(amplitude_noise[1])" * ".png"), 
+            fig; px_per_unit=5, # Makie 0.20 increase resolution of saved figure (600 x 5 = 3000 pixels)
+        ) # closes window
 
         ##########################################
         # save everything in 3D for the sum plot!

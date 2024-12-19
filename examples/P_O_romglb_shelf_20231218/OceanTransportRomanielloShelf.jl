@@ -536,8 +536,7 @@ function calculate_rom_transport_matrix(rj::ReactionOceanTransportRomanielloShel
 
     # read the model input from Steve's src
     circname = "Global_79_Box" # "Global_79_Box", "Black_Sea"
-    # matdir = joinpath(PALEOreactions.srcdir(), "ocean")
-    matdir = @__DIR__
+    matdir = rj.pars.matdir[] # folder containing mat files
     matfilename = joinpath(matdir, "romaniello_global79.mat")
     rom_data = MAT.matread(matfilename)
 

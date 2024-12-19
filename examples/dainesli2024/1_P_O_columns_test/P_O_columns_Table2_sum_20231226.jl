@@ -320,8 +320,7 @@ p_sum=Plots.plot()
 # ]
 
 l = @layout[
-    a b c;
-    d e f
+    grid(3,3)
 ]
 
 p_sum = Plots.plot(
@@ -331,9 +330,11 @@ p_sum = Plots.plot(
                 # plot_phase_plane_single_O("preCambrian_Bergman_sharp_switch_unstable5"; linestyle=:dashdotdot, single_cycle=true, linewidth=2), 
                
     p_O2_U,
-        # p_anoxia, 
-        ppp,
-            plot_time_series_waveform("preCambrian_Bergman_sharp_switch_unstable5"; linestyle=:dash),
+    p_anoxia, 
+    ppp,
+    plot_time_series_waveform("preCambrian_Bergman_lowO2U"),
+        plot_time_series_waveform("preCambrian_Bergman_neutrally_stable"; linestyle=:dash),  
+            plot_time_series_waveform("preCambrian_Bergman_sharp_switch_unstable5"; linestyle=:dashdot),
 
     layout = l, 
     # size=(1200, 700),
@@ -343,4 +344,4 @@ p_sum = Plots.plot(
 
 display(p_sum)
 
-Plots.savefig(p_sum,  joinpath(output_figures_dir, "PO_secular_stability_ocillation_summary_20231226.svg"))
+Plots.savefig(p_sum,  joinpath(output_figures_dir, "PO_secular_stability_ocillation_summary_20240416.svg"))

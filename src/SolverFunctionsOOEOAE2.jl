@@ -32,6 +32,26 @@ function POAnormDeriv(
 end
 
 """
+    POAstatenormDeriv(model, modeldata; kwargs...) -> poand::SubsetNormDeriv
+
+See SubsetNormDeriv, calculates normalized derivative and Jacobian for ocean.P_solve, atmocean.O_solve, atmocean.A_solve
+holding other variables fixed.
+
+For those configuration that set reservoirs state_norm = true. ocean.P_solve replaced ocean.P.
+
+Returns SubsetNormDeriv(model, modeldata,["ocean.P", "atmocean.O", "atmocean.A"]; kwargs...)
+"""
+function POAstatenormDeriv(
+    model, modeldata; 
+    fixed_values=PALEOmodel.get_statevar(modeldata.solver_view_all),
+    fixed_t=0.0,
+    norm_values=ones(length(fixed_values)), # ocean.P_solve already being normalized
+    include_jacobian=false
+)
+    return SubsetNormDeriv(model, modeldata, ["ocean.P_solve", "atmocean.O_solve", "atmocean.A_solve"]; fixed_values, fixed_t, norm_values, include_jacobian)
+end
+
+"""
     POnormDeriv(model, modeldata; kwargs...) -> poand::SubsetNormDeriv
 
 See SubsetNormDeriv, calculates normalized derivative and Jacobian for ocean.P, atmocean.O,
@@ -95,6 +115,10 @@ function SubsetNormDeriv(
 
     n_full = length(fixed_values)
     n_sub = length(subset_varnames)
+
+    # 20240501 the update of the PB involve the P_solve...
+    # if you "state_norm"=>true, then there is no ocean.P but ocean.P_solve instead
+
 
     # indices in linear Vector of values used by ODE-like solvers and for Jacobian
     # NB: if an isotope variable (ie multiple indices) only the first index is used
@@ -211,7 +235,7 @@ Run paleo model and return time series of A, O, P as Vectors
 
 If has_A=true, assumes model includes A and returns A_ts, otherwise returns A_ts=[]
 """
-function find_time_series(model, initial_state, modeldata; has_A::Bool, tspan = (0.0, 1e8))
+function find_time_series(model, initial_state, modeldata; has_A::Bool, tspan = (0.0, 1e8), dtmax = 1e4)
     paleorun = PALEOmodel.Run(model=model, output = PALEOmodel.OutputWriters.OutputMemory())
 
     # tspan = (0.0, 1e7) # yr
@@ -222,7 +246,7 @@ function find_time_series(model, initial_state, modeldata; has_A::Bool, tspan = 
             reltol=1e-4,
             # reltol=1e-5,
             # saveat=1e6,
-            dtmax=1e4,
+            dtmax=dtmax,
         )
     )
 
@@ -274,6 +298,8 @@ function find_nullclines_POA(
 
     last_dPdt_line_POA_n_l = nothing # special handling for dP/dt = 0 to avoid glitch in coordinates
     for (k, A_grid_val) in enumerate(A_grid)
+
+        @info "i = $k, A_val = $(A_grid[k])"
         coords = fill((NaN, NaN, NaN), length(P_grid), length(O_grid))
 
         # create P, O, A coords for P, O plane at constant A
@@ -290,7 +316,14 @@ function find_nullclines_POA(
         dPdt_line_POA = Isoline.find_isolines((P_n, O_n, A_n)->poand(P_n, O_n, A_n)[1], coords; maxiters=20)[end] ## , verbose=true))
         # interpolate isoline to constant number of points, filling with previous values if coordinates jump (to prevent glitches in the surface plot)
         dPdt_line_POA_n_l = Isoline.interpolate_isoline(dPdt_line_POA, n_l, last_dPdt_line_POA_n_l)     
+        
+        # # this may cause a error
         last_dPdt_line_POA_n_l = dPdt_line_POA_n_l
+        # @info "length of dPdt_line_POA = $(length(dPdt_line_POA)); length of dPdt_line_POA_n_l = $(length(dPdt_line_POA_n_l))"
+        # if length(dPdt_line_POA_n_l) != n_l
+        #     @error "The length of dPdt_line_POA_n_l should equals to $(n_l)"
+        # end
+
         # fill surface from isolines
         dPdt_surf[:, k] .= dPdt_line_POA_n_l
 
@@ -582,16 +615,20 @@ end
 """
 function plot_3D_mapping_to_PO_phase(
     dPdt_linesegs_const_A,
-    Obal_P, Obal_O, A_val,
+    dOdt_dPdt_linesegs_POA, 
+    # Obal_P, Obal_O, 
+    A_val,
     P_ts, O_ts,
     xlims=[0.0, 5.5],
-    ylims=[0.0, 2.25],
-
+    ylims=[0.0, 2.25];
+    reset_plot_size=true,  # this is a bad idea as it screws up subsequent plots !!
 )
-    Plots.gr(size=(400, 400))
+    reset_plot_size && Plots.gr(size=(400, 400))
     p1 = Plots.plot()
     SolverFunctionsOOEOAE2.plot_segments!(Plots.plot!, p1, dPdt_linesegs_const_A, [1, 2], (:dash, :solid), "critical manifold, A = $(A_val)"; color=:blue);
-    Plots.plot!(p1, Obal_P, Obal_O; color=:red, label=false); # label="O nullcline"
+    # Plots.plot!(p1, Obal_P, Obal_O; color=:red, label=false); # label="O nullcline"
+    SolverFunctionsOOEOAE2.plot_segments!(Plots.plot!, p1, dOdt_dPdt_linesegs_POA, [1, 2], (:dash, :solid), "O_nullcline"; color=:red);
+
     Plots.plot!(p1, P_ts, O_ts; color=:green, label=false); # label="time series"
     Plots.plot!(p1; xlabel="P_norm", ylabel="O (PAL)", xlims=xlims, ylims=ylims, left_margin = 8Plots.mm, bottom_margin = 8Plots.mm)
 
@@ -605,22 +642,26 @@ end
     (need to calculate nullclines in P, A surface at constant O)
 """
 function plot_3D_mapping_to_PA_phase(
-    dPdt_linesegs_const_O, dAdt_line_const_O,
-    Obal_P, Obal_O, O_val,
-    P_ts, A_ts,
-    O_nullcline::Bool=false,
-    A_nullcline::Bool=false,
+    dPdt_linesegs_const_O, 
+    dAdt_line_const_O,
+    dOdt_dPdt_linesegs_POA,
+    O_val,
+    P_ts, A_ts;
+    O_nullcline::Bool=true,
+    A_nullcline::Bool=true,
     xlims=[0.0, 5.5],
     ylims=[0.0, 2.25],
+    reset_plot_size=true,  # this is a bad idea as it screws up subsequent plots !!
 )
-    Plots.gr(size=(400, 400))
+    reset_plot_size && Plots.gr(size=(400, 400))
     p1 = Plots.plot()
     SolverFunctionsOOEOAE2.plot_segments!(Plots.plot!, p1, dPdt_linesegs_const_O, [1, 3], (:dash, :solid), "critical manifold, O = $(O_val)"; color=:blue);
     if A_nullcline
         Plots.plot!(p1, map(x->x[1], dAdt_line_const_O), map(x->x[3], dAdt_line_const_O); color=:black, label="A nullcline");     
     end       
     if O_nullcline
-        Plots.plot!(p1, Obal_P, Obal_O; color=:red, label=false); # label="O nullcline"
+        # Plots.plot!(p1, Obal_P, Obal_O; color=:red, label=false); # label="O nullcline"
+        SolverFunctionsOOEOAE2.plot_segments!(Plots.plot!, p1, dOdt_dPdt_linesegs_POA, [1, 2], (:dash, :solid), "O_nullcline"; color=:red);
     end
     Plots.plot!(p1, P_ts, A_ts; color=:green, label="time series");
     Plots.plot!(p1; xlabel="P_norm", ylabel="A_norm", xlims=xlims, ylims=ylims, left_margin = 8Plots.mm, bottom_margin = 8Plots.mm);
@@ -637,15 +678,15 @@ end
 function plot_3D_mapping_to_OA_phase(
     folds_dPdt_lines_POA, dOdt_dPdt_linesegs_POA,
     dAdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA_end,
-    O_ts, A_ts,
-    O_nullcline::Bool=false,
-    A_nullcline::Bool=false,
+    O_ts, A_ts;
+    O_nullcline::Bool=true,
+    A_nullcline::Bool=true,
     xlims=[0.0, 5.5],
     ylims=[0.0, 2.25],
-    linestyle=:solid
-
+    linestyle=:solid,
+    reset_plot_size=true,  # this is a bad idea as it screws up subsequent plots !!
 )
-    Plots.gr(size=(400, 400))
+    reset_plot_size && Plots.gr(size=(400, 400))
     p1 = Plots.plot()
     n_foldlines = length(folds_dPdt_lines_POA);
 
@@ -897,6 +938,156 @@ function find_periodic(
     return (; element_counts, start_point_index, end_point_index, sign_change, sign_change_P, sign_change_O)
 end
 
+function find_periodic_noinfo(
+    P_ts, O_ts, t_ts, 
+    eqb_point; # eqb_point or intersection point, 
+    Spec_P = -1, # you can also specify a P_norm value, the function find the starting point for you 
+    need_double_check = false,
+    min_distance = 0.001,
+    omit_t_start=0.0, # time at beginning to omit when estimating P value for zero crossing
+    include_t_start_crossings=true, # false to also omit zero crossings where t < omit_t_start
+    plot=false,
+)
+
+    if need_double_check
+    #     @info """
+
+    #     ########################### Looking for the periodic #################################
+    #  """
+    end
+
+    ####### set default output #######
+    (element_counts, start_point_index, end_point_index, sign_change, sign_change_P, sign_change_O) = 
+        (Dict(), 1, length(P_ts), [],[],[])
+    #######
+
+    if length(eqb_point) == 3
+        (eqb_P, eqb_O, _) = eqb_point
+    elseif length(eqb_point) <= 2
+        (eqb_P, eqb_O) = eqb_point
+    end
+
+    eqb_dist = ((eqb_P - P_ts[end])^2 + (eqb_O - O_ts[end])^2)^0.5 
+
+    # @info "find_periodic: eqb_dist = $eqb_dist  (eqb_P, eqb_O) = ($eqb_P, $eqb_O), last point = ($(P_ts[end]), $(O_ts[end]))"
+    if eqb_dist < min_distance
+        # @info "The P_norm_end equals to the eqb's P_norm, this might be a 'damping oscillation' case, start from the eqb's P_nrom"
+        Spec_P = eqb_P
+    elseif Spec_P < 0
+        P_ts_filter = Float64[]
+        for (t, P) in zip(t_ts, P_ts)
+            if t > omit_t_start
+                push!(P_ts_filter, P)
+            end
+        end
+        # @info "No starting point is been specified, start from the mid of P_norm omitting times < $omit_t_start" 
+        Spec_P = (maximum(P_ts_filter) + minimum(P_ts_filter))/2
+    else
+        # @info "Specifing a P_norm = \e[34m$(Spec_P)\e[0m value to find the start point"
+        if (Spec_P >= maximum(P_ts)) || (Spec_P <= minimum(P_ts))
+            @error "The specified P_norm is out of range"
+            return (; element_counts, start_point_index, end_point_index, sign_change, sign_change_P, sign_change_O)
+        end
+    end
+
+    diff_P = P_ts .- Spec_P
+    sign_change_P=[]
+    for i in 1:(length(P_ts)-1)
+        if include_t_start_crossings || t_ts[i] > omit_t_start
+            if (diff_P[i]) * (diff_P[i+1]) < 0 # the point where sign change
+                push!(sign_change_P, i)
+                # @info "$(diff_P[i]), $(diff_P[i+1])"
+            end
+        end
+    end
+    
+    if length(sign_change_P) <= 1
+        # @warn "\e[31mThe specified P_norm = $Spec_P is unique!, this might be a 'globally stable' case"
+        return (; element_counts, start_point_index, end_point_index, sign_change, sign_change_P, sign_change_O)
+    end
+
+    # # this is the periodic consider both P and O
+    # sign_change = intersect(sign_change_P, sign_change_O)
+
+    if plot
+        Plots.plot(t_ts, P_ts, label="P_norm")
+        Plots.plot!(t_ts, O_ts, label="O_norm")
+        display(Plots.scatter!(t_ts[sign_change_P], P_ts[sign_change_P], xlims=(0,5e7)))
+    end
+
+    # use the sign change position to find the certain T
+    t_vector = []; periodic_vector=[]
+    t_vector_P = []; t_vector_O=[]; periodic_vector_P=[]
+
+    for i in 1:2:(length(sign_change_P)-1) 
+        t_spec_temp = linear_inter(P_ts[sign_change_P[i]], P_ts[sign_change_P[i]+1], Spec_P,
+                            t_ts[sign_change_P[i]], t_ts[sign_change_P[i]+1])
+        push!(t_vector_P, t_spec_temp)
+    end
+    ##########################
+
+    # push the certain periodics into the vector
+    # for i in 2:length(t_vector)
+    #     push!(periodic_vector, t_vector[i] - t_vector[i-1])
+    # end
+    for i in 2:length(t_vector_P)
+        push!(periodic_vector_P, t_vector_P[i] - t_vector_P[i-1])
+    end
+    
+    if !isempty(periodic_vector_P) # periodic is consistent, stable limit cycle
+        (element_counts) = check_error(periodic_vector_P, 5) # 5% error
+        (start_point_index, end_point_index) = (sign_change_P[1], sign_change_P[3])
+    elseif need_double_check
+        # @warn "Do not find the periodic, start the double check..."
+        pass_double_check = false
+        vector_P = vcat(collect(range(start=maximum(P_ts)-0.5, stop=maximum(P_ts), length=5)),
+                        collect(range(start=ceil(minimum(P_ts)), stop=floor(maximum(P_ts)), length=5)),
+                      collect(range(start=minimum(P_ts), stop=minimum(P_ts)+0.5, length=5)),
+                      P_ts[end])
+        sort!(vector_P)
+        for i in eachindex(vector_P)
+            (; element_counts, start_point_index, end_point_index) = SolverFunctionsOOEOAE2.find_periodic_noinfo(P_ts, O_ts, t_ts, eqb_point; Spec_P=vector_P[i], need_double_check=false)
+            if length(element_counts) == 1
+                # (start_point_index, end_point_index) = (sign_change[1], sign_change[2])
+                pass_double_check = true
+            end
+        end
+        
+        # if pass_double_check
+        #     @info "\e[32mFinish the double check... we found stable limit cycle\e[0m"
+        # else
+        #     @info "\e[31mFinish the double check... no stable limit cycle\e[0m"
+        # end
+    else 
+        # @warn "In the double check process, do not find the periodic..."
+    end
+
+    if length(element_counts) == 1
+        # println("\e[34mLimite cycle is stable, Periodic (yr) = $(first(keys(element_counts))), index = e.g. [$start_point_index, $end_point_index])\e[0m")
+    else
+        # println("\e[31mOscillation is unstable, several Periodics (yr) num = $(length(element_counts)), $(element_counts)\e[0m")
+    end
+
+    # println("######### Finish find periodic... #########")
+
+    return (; element_counts, start_point_index, end_point_index, sign_change, sign_change_P, sign_change_O)
+end
+
+"""
+    find_periodic_wapper
+
+    The PALEO wapper for find_periodic,
+    The initial input is the model output
+"""
+function find_periodic_wapper(output::PALEOmodel.OutputWriters.OutputMemory)
+    t_ts = PB.get_data(output, "global.tforce")
+    P_ts = PB.get_data(output, "ocean.P_norm")
+    O_ts = PB.get_data(output, "atmocean.O_norm")
+    eqb_point = (P_ts[end], O_ts[end])
+
+    return find_periodic(P_ts, O_ts, t_ts, eqb_point)
+end
+
 """
     find_sharpness_corg_burial_fac
 
@@ -942,6 +1133,18 @@ function find_sharpness((k_O2_U_min, k_O2_U_max), CP_ratio)
 
     return sharpness
 end
+
+function find_sharpness_PALEOwapper(output::PALEOmodel.OutputWriters.OutputMemory, CP_ratio)
+    O2_U = PB.get_data(output, "ocean.O2_U_local")
+
+    sharpness=[]
+    for i in 1:length(O2_U)
+        push!(sharpness, find_sharpness((O2_U[i][1], O2_U[i][end]), CP_ratio))
+    end
+
+    return sharpness
+end
+
 
 
 """
@@ -996,8 +1199,12 @@ function find_intersection_point_newton(poand; initialpoa=[1.0, 1.0, 1.0])
         show_trace=true,
         extended_trace=true,
         iterations=100,
-        apply_step! = PALEOmodel.SolverFunctions.StepClampMultAll!(1e-3, 5.0, 2.0)
+        apply_step! = PALEOmodel.SolverFunctions.StepClampMultAll!(1e-3, 5.0, 1.2)
     )
+
+    # @Infiltrator.infiltrate
+    # sol.f_converged == false, sol.iterations == 100
+
 
     return (sol.zero...,)
 end
@@ -1080,5 +1287,43 @@ function resample_map_grid(
 
     return x_new_grid, y_new_grid, z_new
 end
+
+"""
+    forcing_white_noise
+
+    generate white noise, norm_distribution return a time series
+
+    The input:  
+        step: time interval between two pulse
+        dt: duration of each pulse
+
+    The output of this function is prepared for the Reaction CO2pulse, perturb_totals and perturb_times
+"""
+function forcing_white_noise(
+    start::Float64,    # e.g. -600e6
+    step::Float64,     # e.g. 1e6, step of the time series, 1e6 per point
+    stop::Float64,     # e.g. -300e6
+    CO2pulse::Float64; # e.g. 1e14 mol/yr
+    dt::Float64=1e2,   # e.g. 1e4
+)
+    if dt > step
+        @error "The duration of the pulse should never greater than between two pulses"
+    end
+
+    age = collect(range(start=start,step=step,stop=stop))
+    pulse = randn(length(age)) * CO2pulse     
+
+    # age_temp = collect(range(start=start,step=step,stop=stop))
+    # pulse_temp = abs.(randn(length(age_temp))) * CO2pulse # positive part of norm_distribution * CO2pulse
+    # age=Float64[]
+    # pulse=Float64[]
+
+    # for i in eachindex(age_temp)
+    #     age = vcat(age, [age_temp[i]-1.0, age_temp[i], age_temp[i]+dt, age_temp[i]+dt+1.0])
+    #     pulse = vcat(pulse, [0.0, pulse_temp[i], pulse_temp[i], 0.0])
+    # end
+
+    return age, pulse
+end 
 
 end # module

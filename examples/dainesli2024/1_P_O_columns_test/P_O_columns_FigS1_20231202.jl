@@ -10,9 +10,9 @@ import PALEOmodel
 # import PALEOreactions
 import PALEOcopse
 
-include("../ReactionsOOEOAE_dev.jl")
+include("../../../src/ReactionsOOEOAE_dev.jl")
 # include("../SolverFunctionsOOEOAE.jl")
-include("../SolverFunctionsOOEOAE2.jl")
+include("../../../src/SolverFunctionsOOEOAE2.jl")
 include("../ooeoae_expts.jl")
 
 

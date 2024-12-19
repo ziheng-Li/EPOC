@@ -293,9 +293,14 @@ GLMakie.save(joinpath(output_figures_dir, "Rate_CO2pulse_summary_3D_$output_figu
         folds_dPdt_lines_POA, dOdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA_end, eqb_point, eqb_point_end)  = 
             P_O_A_U_columns_Table4_4["preCambrian_Bergman_sharp_switch_unstable5_Corgb7_Psilw_only_rate1"]
 
-Obal_P, Obal_O, _ = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_surf[:, 1]) # dO/dt = 0 is independent of A so just pick first A
-plot_PA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_PA_phase(dPdt_linesegs_const_O, dAdt_line_const_O, Obal_P, Obal_O, O_val, P_ts, A_ts, true, true, [0.0, 4.0], [2.0, 5.0])
-plot_OA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_OA_phase(folds_dPdt_lines_POA, dOdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA_end, O_ts, A_ts, true, true, [0.0, 1.0], [2.0, 5.0], linestyles[1])
+# SJD fixes for SolverfunctionsOOEOAE2 update
+# Obal_P, Obal_O, _ = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_surf[:, 1]) # dO/dt = 0 is independent of A so just pick first A
+# plot_PA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_PA_phase(dPdt_linesegs_const_O, dAdt_line_const_O, Obal_P, Obal_O, O_val, P_ts, A_ts, true, true, [0.0, 4.0], [2.0, 5.0])
+# plot_OA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_OA_phase(folds_dPdt_lines_POA, dOdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA_end, O_ts, A_ts, true, true, [0.0, 1.0], [2.0, 5.0], linestyles[1])
+plot_PA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_PA_phase(dPdt_linesegs_const_O, dAdt_line_const_O, dOdt_dPdt_linesegs_POA, O_val, P_ts, A_ts; O_nullcline=true, A_nullcline=true, xlims=[0.0, 4.0], ylims=[2.0, 5.0])
+plot_OA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_OA_phase(folds_dPdt_lines_POA, dOdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA_end, O_ts, A_ts; O_nullcline=true, A_nullcline=true, xlims=[0.0, 1.0], ylims=[2.0, 5.0], linestyle=linestyles[1])
+
+
 
 for (i, exptroot) in enumerate(["rate3", "rate5"])
     local (; expt_id, paleorun, modeldata, t_ts, A_ts, P_ts, O_ts, A_val, O_val,

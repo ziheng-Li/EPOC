@@ -7,16 +7,15 @@ examples/dainesli2024/
 This folder is a partial copy of PALEOexamples\src\OOEOAE_base folder from
 PALEOdev.jl repo, branch OOE_2021_Ziheng_dev2
 
+Initial check-in from Daines & Li 2024-01 PNAS submission:
     From:
         commit 74fa0878494557fd969518c637bec46e6e2e43d9 (HEAD -> OOE_2021_Ziheng_dev2, origin/OOE_2021_Ziheng_dev2)
         Author: Ziheng Li <zihengli@cug.edu.cn>
         Date:   Sun Jan 28 15:00:46 2024 +0800
 
-(Daines & Li 2024 PNAS submission)
+Master table of experiment parameters is OOEOAE_TableS1_sum_all_expts_20240103.xlsx
 
-TODO 
-
-- update to Sci Adv submission
+Updated to Sci Adv submission 2024-05:
 
     From:
         commit 51fcdb04b7aa1766024e9fff59230c80065a9287
@@ -25,12 +24,12 @@ TODO
 
         This commit has git tag: DainesLi2024_SciAdv_submit
 
-- update core code in ../../src/ to latest version with corresponding script changes if necessary
+Master table of experiment parameters is OOEOAE_TableS4_sum_all_expts_20240601.xlsx
+
+NB: this update also includes updates to core code in ../../src with small corresponding yaml and script changes
 
 ## Figure cross-reference
-(from PNAS submitted version 2024-01, with renumbering and TODO to update for Sci Adv submitted version 2024-05)
-
-TODO out-of-date master table of experiment parameters is OOEOAE_TableS1_sum_all_expts_20240103.xlsx
+(from PNAS submitted version 2024-01, with renumbering and updates for Sci Adv submitted version 2024-05)
 
 Figure graphics and README are in subfolders of Dropbox\BACE_OOEOAE\DainesLiOverleaf\Figures,
 where the README documents that scripts used and the location and names of the intermediate png, svg
@@ -50,92 +49,107 @@ Scripts are modified to reproduce output and save in ./figures/ instead of Dropb
 ### Fig 4 Timescale separation .. P O nullclines
     Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure2_PO_secular_stability_oscillation/
 
-    1_P_O_columns_test/P_O_columns_Table2_sum_20231226.jl
-        --> figures/P_O_columns_Table2_sum_20231226/PO_secular_stability_ocillation_summary_20231226.svg
-
-    TODO this is out-of-date - need updated P_O_columns_Table2_sum_20231226.jl
-        --> figures/PO_secular_stability_ocillation_summary_part1_20240416.svg (Fig 3)
-        --> figures/PO_secular_stability_ocillation_summary_part2_20240416.svg (Fig 4)
-
-    Instructions for out-of-date PNAS versions:
+    Updated instructions for Sci Adv version:
     - Step 1 script
-        OOEOAE_base/1_P_O_columns_test/P_O_columns_Table2_sum_20231226.jl ->
+        OOEOAE_base/1_P_O_columns_test/P_O_columns_Table2_sum_20231226.jl
+        --> figures/P_O_columns_Table2_sum_20231226/PO_secular_stability_ocillation_summary_20240416.svg  
     - Step 2 script plot into dropbox
-        Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test/P_O_columns_Table2_sum_20231226/PO_secular_stability_ocillation_summary_20231226.svg
-    - Step 3 diff versions of plot deposit
-        Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure2_PO_secular_stability_oscillation/PO_secular_stability_ocillation_summary_20231227.svg
-
+        Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/1_P_O_columns_test/P_O_columns_Table2_sum_20231226/PO_secular_stability_ocillation_summary_20240416.svg
+    - Step 3 move panels and annotate
+        Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure2_PO_secular_stability_oscillation/
+            --> figures/PO_secular_stability_ocillation_summary_part1_20240416.svg (Fig 3)
+            --> figures/PO_secular_stability_ocillation_summary_part2_20240416.svg (Fig 4)
+        TODO: vertical panel size for 'part2' phase plane looks wrong ?
     
 
 ### Fig 5 Dynamics and stability of the coupled P, O, A system...
     Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure4_POAU_3D_sum_20231106
+        Figure5_3D_change_regimes_20240511.svg
 
-    TODO need updated ./2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_20240510.jl
+    Updated instructions for Sci Adv version:
+        - Step 1 scripts
+            ./2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_20240510.jl -> 
+                ./figures/P_O_A_U_Table2_3D_sum_Ziheng_20240510/POAU_figure5_change_regimes_time_series.svg
+            ./2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_20231122_graphicstest.jl ->
+                ./figures/POAU_figure3_sharp_switch_3D_phase_plane_central.png
+                ./figures/POAU_figure3_sharp_switch_3D_phase_plane_marginal.png
+                ./figures/POAU_figure3_stable_3D_phase_plane.png
 
-    Instructions for out-of-date PNAS versions:
-        - Step 1 script
-            ./2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_20231122_graphicstest.jl -> 
         - Step 2 script plot into dropbox
-            Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_graphicstestP_O_A_U_Table2_3D_sum_graphicstest (all files in it) ->
+            Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_Ziheng_20240510
+            Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table2_3D_sum_graphicstest (?)
         - Step 3 diff versions of plot deposit
-            Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure4_POAU_3D_sum_20231106/Figure4_3D_phase_plane_sum_20240103.svg
+            Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure4_POAU_3D_sum_20231106/Figure5_3D_change_regimes_20240511.svg
 
 ### Fig 6 Rate-dependent forcing and excitation of an OAE in the P-O model ...
     Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure5_POA_Ppulse
 
-    TODO may need updated 2_P_O_A_U_columns_test/P_O_A_U_Table3_1_20231227.jl ?
-        --> P_O_excitability_rate_dependent_oxic_20240514.svg
-
-    Instructions for out-of-date PNAS versions:
+    Updated instructions for Sci Adv version:
         - Step 1 script
             2_P_O_A_U_columns_test/P_O_A_U_Table3_1_20231227.jl ->
+               ./figures/P_O_A_U_Table3_1/P_O_excitability_rate_dependent_oxic_20231227.svg
+               ./figures/P_O_A_U_Table3_1/P_O_excitability_rate_dependent_oxic_SI_20231227.svg
         - Step 2 script plot into dropbox
-            Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table3_1/P_O_excitability_rate_dependent_oxic_20231227.svg ->
-        - Step 3 diff versions of plot deposit
-            Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure5_POA_Ppulse/P_O_excitability_rate_dependent_oxic_20231229.svg
+            Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table3_1/
+                P_O_excitability_rate_dependent_oxic_20231227.svg
+                P_O_excitability_rate_dependent_oxic_SI_20231227.svg 
+
+        - Step 3 Inkscape add annotations, reorder panels
+            Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure5_POA_Ppulse/P_O_excitability_rate_dependent_oxic_20240510.svg
             
 ### Fig 7 (P-O-A OOE excitation by degassing reduction)
-    Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_POAU_CO2pulse
+    Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_POAU_CO2pulse/Rate_CO2pulse_summary_20231225.svg
 
-    TODO may need update ?
-
-    Instructions for out-of-date PNAS versions:        
+    Instructions for PNAS versions, unchanged for Sci Adv version
         - Step 1 script
+            (NB: script needed small update to sync with SolverFunctionsOOEOAE2.jl)
             OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_4_rate_sum_20231203.jl -> 
         - Step 2 script plot into dropbox
-            Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_4_rate_sum/Rate_CO2pulse_summary_20231218.svg ->
-        - Step 3 diff versions of plot deposit
+            Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_4_rate_sum/
+                Rate_CO2pulse_summary_20231218.svg
+                Rate_CO2pulse_summary_3D_20231218.png
+        - Step 3 combine in Inkscape
             Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_POAU_CO2pulse/Rate_CO2pulse_summary_20231225.svg
 
 
 ### Fig 8 (P-O-A OAE excitation by CO2 pulse)
-    Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_POAU_CO2pulse/
+    Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_POAU_CO2pulse/Excitability_CO2pulse_summary_20231221.svg
 
-    TODO may need update?
+    TODO needs bugfix:
+    updated script to version from PALEOdev.jl (looks like small changes to sync with SolverFunctionsOOEOAE2.jl)
+        P_O_A_U_Table4_1_excitability_sum_20231202.jl 
+    ... but doesn't produce identical output to the Dropbox composite figure (3D phase plane trajectories are visibly not starting/ending in the right place) 
 
-    Instructions for out-of-date PNAS versions: 
+    Instructions for PNAS version, unchanged for Sci Adv version:
         - Step 1 script
-            OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_1_excitability_sum_20231202.jl ->
+            OOEOAE_base/2_P_O_A_U_columns_test/_O_A_U_Table4_1_excitability_sum_20231202.jl ->
         - Step 2 script plot into dropbox
             Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table4_1_excitability_sum ->
         - Step 3 diff versions of plot deposit
             Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_POAU_CO2pulse/Excitability_CO2pulse_summary_20231221.svg
 
 ### Fig 9 P-O-A stochastic forcing
-    Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_white_noise_change_regimes/
+    Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_white_noise_change_regimes/White_noise_sum_20240520_SJD.svg
     
+    TODO output is visually quite different to Dropbox composite figure (marginally stable regime iii is actually unstable!)
+    Checked that the PALEOdev version has the same problem (and script is the same)
+
+    Eyeballing plots for the oxic transition, the plot looks like it is using corg_bf ~ 1.15, but the script is using 1.12 .
+    Plausibly the same problem for the anoxic transition (harder to tell as the range in corg_bf is smaller) 
+
+    So it looks like the checked in script is not the one that was used to create the plot !?
+
     2_P_O_A_U_columns_test/P_O_A_U_Table4_1_noise_SDE_change_regime_20240501.jl
         -> 2_P_O_A_U_columns_test/figures/P_O_A_U_Table7_white_noise_change_regimes/
             Whitenoise_oxic_anoxic_sum_20240511.svg
 
-    TODO need the phase plane output ? Commented-out code in script ?
+            TODO need the phase plane output ? Commented-out code in script ?
+            eg preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise_0.0003.png
 
 ### Fig 10 (P-O-A regime diagram)
     Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure_regimes/
 
-    TODO may need update?
-
-    Instructions for out-of-date PNAS versions: 
+    Instructions for PNAS version, unchanged for Sci Adv version
         - Step 1 script
             ./2_P_O_A_U_columns_test/P_O_A_U_Table6_contour_fix_intersection.jl ->
             (NB: takes ~30mins to run a grid of models)
@@ -201,8 +215,16 @@ Scripts are modified to reproduce output and save in ./figures/ instead of Dropb
 ### Fig S7 P-O excitability and rate-dependent forcing
     Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure5_POA_Ppulse/P_O_excitability_rate_dependent_oxic_SI_20231229.pdf
     (expanded version of main paper figure above, uses same script)
+
+    Step 1
         ./2_P_O_A_U_columns_test/P_O_A_U_Table3_1_20231227.jl
-        -> figures\P_O_A_U_Table3_1
+        -> figures/P_O_A_U_Table3_1/P_O_excitability_rate_dependent_oxic_SI_20231227.svg 
+    Step 2
+        script output
+        Dropbox/BACE_OOEOAE/DainesLiOverleaf/OOEOAE_base/2_P_O_A_U_columns_test/P_O_A_U_Table3_1/P_O_excitability_rate_dependent_oxic_SI_20231227.svg 
+    Step 3
+        Inkscape layout and resize
+        Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure5_POA_Ppulse/P_O_excitability_rate_dependent_oxic_SI_20231229.svg, .pdf
 
 ### TODO P-O-A sensitivity studies
 

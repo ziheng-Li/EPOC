@@ -101,23 +101,24 @@ expts_table = [
 
     # ramp of P input, for sharp switch case
     ("PO 16", "modern_Bergman_sharp_switch_stable_oxic_Ppulse_rate1", [# ("P_weathering", 3.9e10, 1.0, 0.0, 0.0), 
-        ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[1], 1e8], [0, 0, 20e9, 20e9])]),  # no Pw feedback
+        ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[1], 1e8], [0, 0, 20e9, 20e9]), ("k_O2_U", (0.23, 0.25)),]),  # no Pw feedback
 
     ("PO 17", "modern_Bergman_sharp_switch_stable_oxic_Ppulse_rate2", [# ("P_weathering", 3.9e10, 1.0, 0.0, 0.0), 
-        ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[2], 1e8], [0, 0, 20e9, 20e9])]),  # no Pw feedback
+        ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[2], 1e8], [0, 0, 20e9, 20e9]), ("k_O2_U", (0.23, 0.25)),]),  # no Pw feedback
     
     ("PO 18", "modern_Bergman_sharp_switch_stable_oxic_Ppulse_rate3", [# ("P_weathering", 3.9e10, 1.0, 0.0, 0.0), 
-        ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[3], 1e8], [0, 0, 20e9, 20e9])]),  # no Pw feedback
+        ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[3], 1e8], [0, 0, 20e9, 20e9]), ("k_O2_U", (0.23, 0.25)),]),  # no Pw feedback
     
     ("PO 129", "modern_Bergman_sharp_switch_stable_oxic_Ppulse_rate4", [# ("P_weathering", 3.9e10, 1.0, 0.0, 0.0), 
-        ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[4], 1e8], [0, 0, 20e9, 20e9])]),  # no Pw feedback
+        ("Ppulse", [0, 1.5e7, 1.5e7+1e6*rate_times[4], 1e8], [0, 0, 20e9, 20e9]), ("k_O2_U", (0.23, 0.25)),]),  # no Pw feedback
 
 ]
+
 
 P_O_A_U_columns_table3_1 = Dict() # all results, indexed by fileroot
 
 for (expt_id, fileroot, vector_pars) in expts_table
-    # (expt_id, fileroot, vector_pars) = expts_table[1]
+    # (fileroot, vector_pars) = expts_table[1]
 
     ooeoae_expts(
         model, vector_pars
@@ -130,7 +131,7 @@ for (expt_id, fileroot, vector_pars) in expts_table
     #########################################################
 
     initial_state, modeldata = PALEOmodel.initialize!(model)
-    
+
     (paleorun, _, O_ts, P_ts) = SolverFunctionsOOEOAE2.find_time_series(model, initial_state, modeldata; has_A=false, tspan)
 
     pond = SolverFunctionsOOEOAE2.POnormDeriv(model, modeldata; fixed_values=initial_state, include_jacobian=true)
@@ -163,31 +164,31 @@ for (expt_id, fileroot, vector_pars) in expts_table
     Pbal_P, Pbal_O = SolverFunctionsOOEOAE2.tuples_to_coords(dPdt_line)
     Obal_P, Obal_O = SolverFunctionsOOEOAE2.tuples_to_coords(dOdt_line)
 
-    ######### Plot #########
-    gr(size=(1000, 600)) # plotlyjs(size=(1000, 600))
-    pager=PALEOmodel.PlotPager(
-        (3, 2), (legend_background_color=nothing, );
-        displayfunc=(plot, nplot)->savefig(plot, joinpath(output_figures_dir, "$(fileroot).svg")), # save to file instead of default display
-    )
-    pager(
-        (
-            Plots.plot(Pbal_P, Pbal_O, xlims=[0.0, 4.5], ylims=[0.0, 2.5], label="slow manifold", xlabel="P_norm", ylabel="O (PAL)");
-            Plots.plot!(Pbal_P, Pbal_O, xlims=[0.0, 4.5], ylims=[0.0, 2.5], label="slow manifold", xlabel="P_norm", ylabel="O (PAL)");
-            Plots.plot!(Obal_P, Obal_O, label="O nullcline");
-            Plots.plot!(P_ts, O_ts, label="time series", left_margin = 8Plots.mm, bottom_margin = 8Plots.mm)
-        ),
+    # ######### Plot #########
+    # gr(size=(1000, 600)) # plotlyjs(size=(1000, 600))
+    # pager=PALEOmodel.PlotPager(
+    #     (3, 2), (legend_background_color=nothing, );
+    #     displayfunc=(plot, nplot)->savefig(plot, joinpath(output_figures_dir, "$(fileroot).svg")), # save to file instead of default display
+    # )
+    # pager(
+    #     (
+    #         Plots.plot(Pbal_P, Pbal_O, xlims=[0.0, 4.5], ylims=[0.0, 2.5], label="slow manifold", xlabel="P_norm", ylabel="O (PAL)");
+    #         Plots.plot!(Pbal_P, Pbal_O, xlims=[0.0, 4.5], ylims=[0.0, 2.5], label="slow manifold", xlabel="P_norm", ylabel="O (PAL)");
+    #         Plots.plot!(Obal_P, Obal_O, label="O nullcline");
+    #         Plots.plot!(P_ts, O_ts, label="time series", left_margin = 8Plots.mm, bottom_margin = 8Plots.mm)
+    #     ),
 
-        Plots.plot(ylabel="Reservoirs", paleorun.output, ["atmocean.O_norm", "ocean.P_norm", "sedcrust.C_norm", "sedcrust.G_norm", "atmocean.A_norm", "ocean.U_norm"]),
-        # plot(paleorun.output, ylabel="P fluxes", ["fluxRtoOcean.flux_P", "fluxOceanBurial.flux_total_P"]), 
-        plot(paleorun.output, ylabel="O fluxes", ["fluxOceanBurial.flux_total_Corg", "fluxAtoLand.flux_O2", "fluxSedCrusttoAOcean.flux_Redox"]), 
+    #     Plots.plot(ylabel="Reservoirs", paleorun.output, ["atmocean.O_norm", "ocean.P_norm", "sedcrust.C_norm", "sedcrust.G_norm", "atmocean.A_norm", "ocean.U_norm"]),
+    #     # plot(paleorun.output, ylabel="P fluxes", ["fluxRtoOcean.flux_P", "fluxOceanBurial.flux_total_P"]), 
+    #     plot(paleorun.output, ylabel="O fluxes", ["fluxOceanBurial.flux_total_Corg", "fluxAtoLand.flux_O2", "fluxSedCrusttoAOcean.flux_Redox"]), 
 
-        Plots.plot(ylabel="TEMP (K)", paleorun.output, ["global.TEMP"]),
-        Plots.plot(title="Carbon isotopes",  paleorun.output, ["atmocean.A_delta", "ocean.DIC_delta", "atm.CO2_delta"], ylabel="delta 13C (per mil)"), # , xlims=(-1e6, 10e6), "ocean.mccb_delta", "sedcrust.C_delta" ; extrakwargs...),
-        Plots.plot(title="Uranium isotopes",  paleorun.output, ["fluxRtoOcean.flux_U.v_delta", "ocean.U.v_delta"], ylabel="d238U/235U"),
-        # plot(title="anoxia_burial_frac", paleorun.output, ["oceanfloor.anoxia_burial_frac"])
-    )
+    #     Plots.plot(ylabel="TEMP (K)", paleorun.output, ["global.TEMP"]),
+    #     Plots.plot(title="Carbon isotopes",  paleorun.output, ["atmocean.A_delta", "ocean.DIC_delta", "atm.CO2_delta"], ylabel="delta 13C (per mil)"), # , xlims=(-1e6, 10e6), "ocean.mccb_delta", "sedcrust.C_delta" ; extrakwargs...),
+    #     Plots.plot(title="Uranium isotopes",  paleorun.output, ["fluxRtoOcean.flux_U.v_delta", "ocean.U.v_delta"], ylabel="d238U/235U"),
+    #     # plot(title="anoxia_burial_frac", paleorun.output, ["oceanfloor.anoxia_burial_frac"])
+    # )
 
-    pager(:newpage)
+    # pager(:newpage)
     
     # plot_anim_P_O(Pbal_P,Pbal_O,Obal_P,Obal_O,P_ts,O_ts,"plot_table3_1/$(fileroot)_anim.gif")
 end

@@ -115,6 +115,7 @@ for (expt_id, fileroot, vector_pars) in expts_table
     ####################################
     (paleorun, A_ts, O_ts, P_ts) = SolverFunctionsOOEOAE2.find_time_series(model, initial_state, modeldata; has_A=true, tspan)
     t_ts = PB.get_data(paleorun.output, "global.tforce")
+
     ###########################################################
     # phase plane plot with nullclines and folds
     ########################################################
@@ -202,7 +203,7 @@ end # end of for loop
 
 #####################
 
-# linestyles = [:solid, :dash, :dashdot, :dot, :dashdotdot]
+linestyles = [:solid, :dash, :dashdot, :dot, :dashdotdot]
 
 ####### 3D phase plane #######
 for (j, exptroot) in enumerate(["CO2pulse1", "CO2pulse2"])
@@ -238,8 +239,6 @@ for (j, exptroot) in enumerate(["CO2pulse1", "CO2pulse2"])
     GLMakie.save(joinpath(output_figures_dir, "preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_"*exptroot*"_3D.png"), fig;
     px_per_unit=5, # Makie 0.20 increase resolution of saved figure (600 x 5 = 3000 pixels)
     ) # closes window
-    # redisplay needed to reset scaling ?
-    display(fig)
 end
 
 # ####### 2D plots in single one ########
@@ -250,8 +249,8 @@ end
         folds_dPdt_lines_POA, dOdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA_end, eqb_point)  = 
         P_O_A_U_columns_Table4_1["preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_CO2pulse1"]
 
-plot_PA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_PA_phase(dPdt_linesegs_const_O, dAdt_line_const_O, Obal_P, Obal_O, O_val, P_ts, A_ts, true, true, [0.0, 4.0], [2.0, 5.0])
-plot_OA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_OA_phase(folds_dPdt_lines_POA, dOdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA_end, O_ts, A_ts, true, true, [0.0, 1.0], [2.0, 5.0], linestyles[1])
+    plot_PA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_PA_phase(dPdt_linesegs_const_O, dAdt_line_const_O, dOdt_dPdt_linesegs_POA, O_val, P_ts, A_ts; xlims=[0.0, 4.0], ylims=[2.0, 5.0])
+    plot_OA = SolverFunctionsOOEOAE2.plot_3D_mapping_to_OA_phase(folds_dPdt_lines_POA, dOdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA, dAdt_dPdt_linesegs_POA_end, O_ts, A_ts; xlims=[0.0, 1.0], ylims=[2.0, 5.0], linestyle=linestyles[1])
 
 for (i, exptroot) in enumerate(["CO2pulse2"])
     local (; expt_id, paleorun, modeldata, t_ts, A_ts, P_ts, O_ts, A_val, O_val,
@@ -314,7 +313,7 @@ l = @layout[
 p_sum = Plots.plot(plot_OA, plot_PA,
                     plot_2_2, plot_2_1, plot_d13C, plot_ANOX, layout = l, left_margin = 5Plots.mm, bottom_margin = 1Plots.mm, size=(800, 600))
 
-savefig(p_sum, joinpath(output_figures_dir, "Excitability_CO2pulse_summary_20231202.svg"))
+# savefig(p_sum, joinpath(output_figures_dir, "Excitability_CO2pulse_summary_20231202.svg"))
 
 # # # report back for the initial OPA state
 # # # for (i, exptroot) in enumerate(["Corgb4", "Corgb3", "Corgb6"])

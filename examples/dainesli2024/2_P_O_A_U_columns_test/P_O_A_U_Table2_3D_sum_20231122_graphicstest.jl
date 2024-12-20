@@ -16,11 +16,9 @@ import PALEOcopse
 # using Interpolations
 
 # ReactionsOOEOAE_dev add Cisotopes, link DIC_sms -= local_Corgburial!
-include("../../../src/ReactionsOOEOAE_dev.jl")
-include("../../../src/SolverFunctionsOOEOAE2.jl")
+include("../../../src/EPOC_reactions.jl")
 
-include("CarbBurial_dev.jl")
-include("Uranium.jl")
+include("../../../src/SolverFunctionsOOEOAE2.jl")
 
 include("../ooeoae_expts.jl")
 

@@ -46,7 +46,7 @@ Base.@kwdef mutable struct ReactionOceanBurialColumn{P} <: PB.AbstractReaction
         PB.ParDouble("corg_burial_fac", 1.0, units="",
             description="multiplier for marine organic carbon burial rate (and C:P burial ratio)"),
         PB.ParBool("use_corg_bf", false,
-            description="true to multiply Corg and P burial fluxes by a factor read from Variable global.SHELF_AREA_NORM"),
+            description="true to multiply Corg and P burial fluxes by a factor read from Variable ocean.corg_bf"),
         PB.ParBool("use_shelf_area_norm", false,
             description="true to multiply Corg and P burial fluxes by a factor read from Variable global.SHELF_AREA_NORM"),
         PB.ParDouble("k_anox", 1000.0,
@@ -57,6 +57,8 @@ Base.@kwdef mutable struct ReactionOceanBurialColumn{P} <: PB.AbstractReaction
             description="local C:P burial ratio anoxic"),
         PB.ParDouble("k_O2_U_min", 0.49,
             description="minimum normalized O2 utilisation"),
+        PB.ParBool("use_kO2U", false,
+            description="true to multiply k_O2_U_min by a factor read from Variable ocean.k_O2U"),
         PB.ParDouble("k_O2_U_max", 0.51,
             description="maximum normalized O2 utilisation"),
         PB.ParString("k_O2_U_rate", "linear", # allowed_values=["linear", "power0.25", "power4"],
@@ -138,6 +140,7 @@ function PB.register_methods!(rj::ReactionOceanBurialColumn)
 
     vars_do = [
         PB.VarDep.(vars_setup)...,
+        PB.VarProp("O2_U_local", "", "normalized O2 utilisation optionally multiplied by kO2U"),
         PB.VarDepScalar("P_norm", "", "normalized marine phosphorus"),
         PB.VarDerivScalar("P_sms", "mol yr-1", "marine phosphorus source - sink"),
         PB.VarDerivScalar("(DIC_sms)", "mol yr-1", "marine DIC source - sink",          # NB: DIC is optional
@@ -153,6 +156,11 @@ function PB.register_methods!(rj::ReactionOceanBurialColumn)
         push!(vars_do, PB.VarDepScalar("corg_bf", "", "multiplier for corg_burial_fac")) # the multiplier of a mutiplier
     end
     PB.setfrozen!(rj.pars.use_corg_bf) # can't be changed as needs a new Variable
+
+    if rj.pars.use_kO2U[]
+        push!(vars_do, PB.VarDepScalar("kO2U", "", "multiplier for k_O2_U_min")) # fix the oxic fold point, change the anoxic fold point to control the sharpness
+    end
+    PB.setfrozen!(rj.pars.use_kO2U) # can't be changed as needs a new Variable
 
     if rj.pars.use_shelf_area_norm[]
         push!(vars_do, PB.VarDepScalar("global.SHELF_AREA_NORM", "", "normalized shelf area forcing for marine Corg and P burial"))
@@ -202,18 +210,18 @@ function PB.register_methods!(rj::ReactionOceanBurialColumn)
     return nothing
 end
 
-function setup_ocean_burial_column(m::PB.ReactionMethod, (vars, ), cellrange::PB.AbstractCellRange, attribute_name)
+function setup_ocean_burial_column(m::PB.ReactionMethod, pars, (vars, ), cellrange::PB.AbstractCellRange, attribute_name)
     rj = m.reaction
     
     attribute_name == :setup || return
 
-    k_O2_U_rate = rj.pars.k_O2_U_rate[]
+    k_O2_U_rate = pars.k_O2_U_rate[]
 
     if k_O2_U_rate == "linear"
-        vars.O2_U .=  range(rj.pars.k_O2_U_min[], rj.pars.k_O2_U_max[], rj.domain.grid.ncells)   
-    elseif k_O2_U_rate[1:5] == "power" 
-        rate = parse(Float64, k_O2_U_rate[6:end])
-        vars.O2_U .= ((1:rj.domain.grid.ncells) ./ rj.domain.grid.ncells) .^ rate .* (rj.pars.k_O2_U_max[] - rj.pars.k_O2_U_min[]) .+ rj.pars.k_O2_U_min[]
+        vars.O2_U .=  range(pars.k_O2_U_min[], pars.k_O2_U_max[], rj.domain.grid.ncells)   
+    # elseif k_O2_U_rate[1:5] == "power" 
+    #     rate = parse(Float64, k_O2_U_rate[6:end])
+    #     vars.O2_U .= ((1:rj.domain.grid.ncells) ./ rj.domain.grid.ncells) .^ rate .* (pars.k_O2_U_max[] - pars.k_O2_U_min[]) .+ pars.k_O2_U_min[]
     else
         @error "Wrong input of the k_O2_U_rate=$(k_O2_U_rate), allowed_values=[linear, power*]"
     end 
@@ -236,7 +244,14 @@ function do_ocean_burial_column(m::PB.ReactionMethod, pars, (vars, fluxBurial), 
     corg_bf_combined = pars.corg_burial_fac[] * corg_bf
 
     mocb = mocb_n * rj.pars.k_mocb[] * shelf_area_norm * corg_bf_combined
-                                
+
+    # Update the vars.O2_U, let the O2_U can change along the time
+    kO2U = pars.use_kO2U[] ? vars.kO2U[] : 1.0
+    # fix the oxic fold point, change the anoxic fold point to control the sharpness
+    k_O2_U_min = vars.O2_U[1]*kO2U
+    k_O2_U_max = vars.O2_U[end]
+    vars.O2_U_local .=  range(k_O2_U_min, k_O2_U_max, rj.domain.grid.ncells)  
+
     vars.anoxia_burial_frac[] = 0.0
 
     for i in cellrange.indices
@@ -251,8 +266,8 @@ function do_ocean_burial_column(m::PB.ReactionMethod, pars, (vars, fluxBurial), 
         
         mocb_isotope = @PB.isotope_totaldelta(CIsotopeType, local_Corgburial, vars.mocb_delta[i])
 
-        vars.local_anoxia[i] = local_anoxia(newp_n, vars.O_norm[], vars.O2_U[i], rj.pars.k_anox.v)
-        vars.local_CPsea[i] = CPsea(vars.local_anoxia[i], rj.pars.k_oxic.v, rj.pars.k_anoxic.v)*corg_bf_combined
+        vars.local_anoxia[i] = local_anoxia(newp_n, vars.O_norm[], vars.O2_U_local[i], pars.k_anox[])
+        vars.local_CPsea[i] = CPsea(vars.local_anoxia[i], pars.k_oxic[], pars.k_anoxic[])*corg_bf_combined
 
         # TODO debugging AD Jacobian
         # if !isa(vars.local_anoxia[i], Float64)
@@ -366,93 +381,6 @@ function do_oxweath_minimal(m::PB.ReactionMethod, (vars, fluxAtoLand), cellrange
     if rj.pars.A_oxidw.v
         # hardcode I guess the oxidw C with -5 isotopic value, need to fix later
         fluxAtoLand.CO2[] -= @PB.isotope_totaldelta(CIsotopeType, vars.oxweath[] , -5)
-    end
-
-    return nothing
-end
-
-"""
-    ReactionUOceanfloor_dev
-
-Calculate U ocean burial in 'anoxic' and 'other' sinks with partitioning linearly dependent on 'ocean anoxia'.
-
-# Parameters
-$(PARS)
-
-# Methods and Variables
-$(METHODS_DO)
-"""
-Base.@kwdef mutable struct ReactionUOceanfloor_dev{P} <: PB.AbstractReaction
-    base::PB.ReactionBase
-
-    pars::P = PB.ParametersTuple(
-        PB.ParDouble("k_U_anoxic_D", 0.6, units="per mil",
-            description="anoxic sink fractionation"),
-        PB.ParDouble("k_U_other_D", 0.005, units="per mil",
-            description="other sink fractionation"),
-    
-        PB.ParDouble("k_U_anoxic", 6.0e6, units="mol U yr-1",
-            description="present-day anoxic sink flux"),
-        PB.ParDouble("k_U_other", 34.0e6, units="mol U yr-1",
-            description="present-day other sink flux"),
-    
-        PB.ParDouble("k_anox_0", 0.0025, units="",
-            description="present-day ocean anoxia fraction"),
-
-        PB.ParType(PB.AbstractData, "UIsotope", PB.IsotopeLinear,
-            external=true,
-            allowed_values=PB.IsotopeTypes,
-            description="disable / enable uranium isotopes and specify isotope type"),
-    )
-
-end
-
-
-function PB.register_methods!(rj::ReactionUOceanfloor_dev)
-
-    UIsotopeType = rj.pars.UIsotope[]
-    PB.setfrozen!(rj.pars.UIsotope)
-
-    vars = [
-        PB.VarDepScalar("ocean.ANOX", "",  "ocean anoxic fraction"),
-        PB.VarDepScalar("ocean.U_norm", "",  "normalized ocean U"),
-        PB.VarDepScalar("ocean.U_delta", "",  "ocean d238U"),
-    
-        PB.VarPropScalar("U_anoxic", "mol U yr-1",  "anoxic sink flux"),
-        PB.VarPropScalar("U_other", "mol U yr-1",  "other sink flux"),
-    
-        PB.VarContrib("solutefluxOceanfloor_U"=>"fluxOceanfloor.soluteflux_U", "mol yr-1",  "U oceanfloor solute flux",
-            attributes=(:field_data=>UIsotopeType,))   
-    ]
-
-    PB.add_method_do!(
-        rj, 
-        do_U_oceanfloor,
-        (PB.VarList_namedtuple(vars), ),
-        p = UIsotopeType,
-    )
-
-    return nothing
-end
-
-function do_U_oceanfloor(
-    m::PB.ReactionMethod,
-    pars,
-    (vars, ), 
-    cellrange::PB.AbstractCellRange,
-    deltat
-)
-    rj = m.reaction
-    UIsotopeType = m.p
-
-    vars.U_anoxic[] = pars.k_U_anoxic[]*vars.U_norm[]*(vars.ANOX[]/pars.k_anox_0[])
-    vars.U_other[]  = pars.k_U_other[]*vars.U_norm[]*(1.0 - vars.ANOX[])/(1.0 - pars.k_anox_0[])
-    
-    r_nfloorcells = 1.0/PB.get_length(rj.domain) # fraction of flux for each oceanfloor cell
-    for i in cellrange.indices 
-        U_anoxic_sink   = @PB.isotope_totaldelta(UIsotopeType, vars.U_anoxic[], vars.U_delta[] + pars.k_U_anoxic_D[])
-        U_other_sink    = @PB.isotope_totaldelta(UIsotopeType, vars.U_other[],  vars.U_delta[] + pars.k_U_other_D[])
-        vars.solutefluxOceanfloor_U[i] -= r_nfloorcells*(U_anoxic_sink + U_other_sink) 
     end
 
     return nothing

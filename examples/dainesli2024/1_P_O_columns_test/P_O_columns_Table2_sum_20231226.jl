@@ -11,7 +11,8 @@ import PALEOcopse
 import Infiltrator
 using Plots
 
-include("../../../src/ReactionsOOEOAE_dev.jl")
+include("../../../src/EPOC_reactions.jl")
+
 include("../../../src/SolverFunctionsOOEOAE2.jl")
 include("../ooeoae_expts.jl")
 # include("../ooeoae_plots.jl")

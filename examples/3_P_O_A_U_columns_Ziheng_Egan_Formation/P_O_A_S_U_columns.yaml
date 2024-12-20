@@ -484,12 +484,14 @@ model1:
                         ncols: 100  # number of ocean columns
                         k_mocb: 4.5e12      
                         corg_burial_fac: 1.0 # multiplier for marine organic carbon burial rate (and C:P burial ratio)
+                        use_corg_bf: true  # true to multiply Corg and P burial fluxes by a factor read from Variable ocean.corg_bf
                         use_shelf_area_norm: true # multiply Corg and P burial by global.SHELF_AREA_NORM
 
                         k_anox: 1000.0 # anoxia function sharpness
                         k_oxic: 115.4 # local C:P burial ratio oxic
                         k_anoxic: 461.6  # local C:P burial ratio anoxic
                         k_O2_U_min: 0.49 # minimum normalized O2 utilisation
+                        use_kO2U: true # true to multiply k_O2_U_min by a factor read from Variable ocean.k_O2U
                         k_O2_U_max: 0.51 # maximum normalized O2 utilisation"), 
                         anoxic_threshold: 0.975
                     
@@ -1034,12 +1036,14 @@ model2:
                         ncols: 100  # number of ocean columns
                         k_mocb: 4.5e12      
                         corg_burial_fac: 1.0 # multiplier for marine organic carbon burial rate (and C:P burial ratio)
+                        use_corg_bf: true  # true to multiply Corg and P burial fluxes by a factor read from Variable ocean.corg_bf
                         use_shelf_area_norm: true # multiply Corg and P burial by global.SHELF_AREA_NORM
 
                         k_anox: 1000.0 # anoxia function sharpness
                         k_oxic: 115.4 # local C:P burial ratio oxic
                         k_anoxic: 461.6  # local C:P burial ratio anoxic
                         k_O2_U_min: 0.49 # minimum normalized O2 utilisation
+                        use_kO2U:  true # true to multiply k_O2_U_min by a factor read from Variable ocean.k_O2U
                         k_O2_U_max: 0.51 # maximum normalized O2 utilisation"), 
                         anoxic_threshold: 0.975
                     

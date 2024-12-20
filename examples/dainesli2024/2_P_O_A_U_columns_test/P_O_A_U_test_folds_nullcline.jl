@@ -16,8 +16,8 @@ import PALEOcopse
 # using Interpolations
 
 # ReactionsOOEOAE_dev add Cisotopes, link DIC_sms -= local_Corgburial!
-include("../ReactionsOOEOAE_dev.jl")
-include("../SolverFunctionsOOEOAE2.jl")
+include("../../../src/ReactionsOOEOAE_dev.jl")
+include("../../../src/SolverFunctionsOOEOAE2.jl")
 
 include("CarbBurial_dev.jl")
 include("Uranium.jl")
@@ -25,7 +25,7 @@ include("Uranium.jl")
 include("../ooeoae_expts.jl")
 
 # Archived figures
-dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
+# dropbox_output_dir = joinpath(@__DIR__, "../../figures/2_P_O_A_U_columns_test")
 
 # Local figures
 isdir("figures") || mkdir("figures")

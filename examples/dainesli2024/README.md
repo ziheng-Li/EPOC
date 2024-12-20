@@ -131,22 +131,34 @@ Scripts are modified to reproduce output and save in ./figures/ instead of Dropb
 ### Fig 9 P-O-A stochastic forcing
     Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure7_white_noise_change_regimes/White_noise_sum_20240520_SJD.svg
     
-    TODO output is visually quite different to Dropbox composite figure (marginally stable regime iii is actually unstable!)
-    Checked that the PALEOdev version has the same problem (and script is the same)
+    Original script from ~20240501:
+        TODO output is visually quite different to Dropbox composite figure (marginally stable regime iii is actually unstable!)
+        Checked that the PALEOdev version has the same problem (and script is the same)
 
-    Eyeballing plots for the oxic transition, the plot looks like it is using corg_bf ~ 1.15, but the script is using 1.12 .
-    Plausibly the same problem for the anoxic transition (harder to tell as the range in corg_bf is smaller) 
+        Eyeballing plots for the oxic transition, the plot looks like it is using corg_bf ~ 1.15, but the script is using 1.12 .
+        Plausibly the same problem for the anoxic transition (harder to tell as the range in corg_bf is smaller) 
 
-    So it looks like the checked in script is not the one that was used to create the plot !?
+        So it looks like the checked in script is not the one that was used to create the plot !?
 
-    TODO  should set C, G reservoirs constant (requires PALEOboxes bugfix)
+        TODO  should set C, G reservoirs constant (requires PALEOboxes bugfix)
 
-    2_P_O_A_U_columns_test/P_O_A_U_Table4_1_noise_SDE_change_regime_20240501.jl
-        -> 2_P_O_A_U_columns_test/figures/P_O_A_U_Table7_white_noise_change_regimes/
-            Whitenoise_oxic_anoxic_sum_20240511.svg
+        2_P_O_A_U_columns_test/P_O_A_U_Table4_1_noise_SDE_change_regime_20240501.jl
+            -> 2_P_O_A_U_columns_test/figures/P_O_A_U_Table7_white_noise_change_regimes/
+                Whitenoise_oxic_anoxic_sum_20240511.svg
 
-            TODO need the phase plane output ? Commented-out code in script ?
-            eg preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise_0.0003.png
+                TODO need the phase plane output ? Commented-out code in script ?
+                eg preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise_0.0003.png
+
+    Updated script 2024-12-19:
+        - change corg_bf for marginally stable regimes to approximate Sci Adv submitted figure 
+        - set C, G reservoirs constant
+        - tidy up 3D phase plane plots
+        2_P_O_A_U_columns_test/P_O_A_U_Table4_1_noise_SDE_change_regime_20241219.jl
+            -> 2_P_O_A_U_columns_test/figures/P_O_A_U_Table7_white_noise_change_regimes_20241219/
+                Whitenoise_oxic_anoxic_sum_20241219.svg
+                preCambrian_Bergman_sharp_switch_unstable5_Corgb2_Psilw_only_CO2_whitenoise_0.0003.png
+                preCambrian_Bergman_sharp_switch_unstable5_Corgb5_Psilw_only_CO2pulse_whitenoise_0.0003.png
+
 
 ### Fig 10 (P-O-A regime diagram)
     Dropbox/BACE_OOEOAE/DainesLiOverleaf/Figures/Figure_regimes/

@@ -4,7 +4,7 @@ import PALEOboxes as PB
 import PALEOmodel
 import Printf
 import Plots
-import ColorTypes
+# import ColorTypes
 import NLsolve
 import Interpolations
 

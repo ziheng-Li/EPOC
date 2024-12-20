@@ -2,7 +2,7 @@ using Logging
 import DataFrames
 
 using Plots 
-using Roots
+# using Roots
 
 import PALEOboxes as PB
 import PALEOmodel

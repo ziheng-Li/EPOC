@@ -235,7 +235,7 @@ Run paleo model and return time series of A, O, P as Vectors
 
 If has_A=true, assumes model includes A and returns A_ts, otherwise returns A_ts=[]
 """
-function find_time_series(model, initial_state, modeldata; has_A::Bool, tspan = (0.0, 1e8), dtmax = 1e4)
+function find_time_series(model, initial_state, modeldata; has_A::Bool, tspan = (0.0, 1e8), reltol=1e-4, dtmax = 1e4)
     paleorun = PALEOmodel.Run(model=model, output = PALEOmodel.OutputWriters.OutputMemory())
 
     # tspan = (0.0, 1e7) # yr
@@ -243,7 +243,7 @@ function find_time_series(model, initial_state, modeldata; has_A::Bool, tspan = 
     @time PALEOmodel.ODE.integrate(
         paleorun, initial_state, modeldata, tspan, 
         solvekwargs=( # https://diffeq.sciml.ai/stable/basics/common_solver_opts/
-            reltol=1e-4,
+            reltol=reltol,
             # reltol=1e-5,
             # saveat=1e6,
             dtmax=dtmax,

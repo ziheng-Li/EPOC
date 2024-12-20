@@ -87,9 +87,13 @@ end
 
 
 """
-    ReactionUOceanfloor
+    ReactionUOceanfloor_dev
 
-Calculate U ocean burial in 'anoxic' and 'other' sinks with partitioning linearly dependent on 'ocean anoxia'.
+Calculate U ocean burial in 'anoxic' and 'other' sinks with partitioning linearly dependent on 'ocean anoxia' U_anoxia.
+
+Anoxia partitioning is a linear map:
+
+    U_ANOX = k_anox_map_0 + ocean.ANOX * k_anox_map_1
 
 # Parameters
 $(PARS)
@@ -97,7 +101,7 @@ $(PARS)
 # Methods and Variables
 $(METHODS_DO)
 """
-Base.@kwdef mutable struct ReactionUOceanfloor{P} <: PB.AbstractReaction
+Base.@kwdef mutable struct ReactionUOceanfloor_dev{P} <: PB.AbstractReaction
     base::PB.ReactionBase
 
     pars::P = PB.ParametersTuple(
@@ -113,6 +117,10 @@ Base.@kwdef mutable struct ReactionUOceanfloor{P} <: PB.AbstractReaction
     
         PB.ParDouble("k_anox_0", 0.0025, units="",
             description="present-day ocean anoxia fraction"),
+        PB.ParDouble("k_anox_map_0", 0.0, units="",
+            description="actual anoxic area fraction U_ANOX = k_anox_map_0 + ocean.ANOX * k_anox_map_1"),
+        PB.ParDouble("k_anox_map_1", 1.0, units="",
+            description="actual anoxic area fraction U_ANOX = k_anox_map_0 + ocean.ANOX * k_anox_map_1"),
 
         PB.ParType(PB.AbstractData, "UIsotope", PB.IsotopeLinear,
             external=true,
@@ -123,7 +131,7 @@ Base.@kwdef mutable struct ReactionUOceanfloor{P} <: PB.AbstractReaction
 end
 
 
-function PB.register_methods!(rj::ReactionUOceanfloor)
+function PB.register_methods!(rj::ReactionUOceanfloor_dev)
 
     UIsotopeType = rj.pars.UIsotope[]
     PB.setfrozen!(rj.pars.UIsotope)
@@ -131,12 +139,15 @@ function PB.register_methods!(rj::ReactionUOceanfloor)
     vars = [
         PB.VarDepScalar("ocean.ANOX", "",  "ocean anoxic fraction"),
         PB.VarDepScalar("ocean.U_norm", "",  "normalized ocean U"),
-        PB.VarDep("ocean.oceanfloor.U_delta", "",  "ocean d238U"),
+        PB.VarDepScalar("ocean.U_delta", "",  "ocean d238U"),
     
-        PB.VarPropScalar("U_anoxic", "mol U yr-1",  "anoxic sink flux"),
-        PB.VarPropScalar("U_other", "mol U yr-1",  "other sink flux"),
+        PB.VarPropScalar("U_ANOX", "",  "linearly mapped ocean anoxic fraction"),
+        PB.VarPropScalar("U_anoxic", "mol U yr-1",  "anoxic sink flux";
+            attributes=(:field_data=>UIsotopeType,)),
+        PB.VarPropScalar("U_other", "mol U yr-1",  "other sink flux";
+            attributes=(:field_data=>UIsotopeType,)),
     
-        PB.VarContrib("solutefluxOceanfloor_U"=>"fluxOceanfloor.soluteflux_U", "mol yr-1",  "U oceanfloor solute flux",
+        PB.VarContrib("solutefluxOceanfloor_U"=>"fluxOceanfloor.soluteflux_U", "mol yr-1",  "U oceanfloor solute flux";
             attributes=(:field_data=>UIsotopeType,))   
     ]
 
@@ -160,104 +171,25 @@ function do_U_oceanfloor(
     rj = m.reaction
     UIsotopeType = m.p
 
-    vars.U_anoxic[] = pars.k_U_anoxic[]*vars.U_norm[]*(vars.ANOX[]/pars.k_anox_0[])
-    vars.U_other[]  = pars.k_U_other[]*vars.U_norm[]*(1.0 - vars.ANOX[])/(1.0 - pars.k_anox_0[])
+    vars.U_ANOX[] = clamp(pars.k_anox_map_0[] + vars.ANOX[] * pars.k_anox_map_1[], 0.0, 1.0) # linear map
+
+    vars.U_anoxic[] = @PB.isotope_totaldelta(
+        UIsotopeType, 
+        pars.k_U_anoxic[]*vars.U_norm[]*(vars.U_ANOX[]/pars.k_anox_0[]),
+        vars.U_delta[] + pars.k_U_anoxic_D[]
+    )
+
+    vars.U_other[]  = @PB.isotope_totaldelta(
+        UIsotopeType, 
+        pars.k_U_other[]*vars.U_norm[]*(1.0 - vars.U_ANOX[])/(1.0 - pars.k_anox_0[]),
+        vars.U_delta[] + pars.k_U_other_D[],
+    )
     
     r_nfloorcells = 1.0/PB.get_length(rj.domain) # fraction of flux for each oceanfloor cell
-    @inbounds for i in cellrange.indices 
-        U_anoxic_sink   = @PB.isotope_totaldelta(UIsotopeType, vars.U_anoxic[], vars.U_delta[i] + pars.k_U_anoxic_D[])
-        U_other_sink    = @PB.isotope_totaldelta(UIsotopeType, vars.U_other[],  vars.U_delta[i] + pars.k_U_other_D[])
-        vars.solutefluxOceanfloor_U[i] -= r_nfloorcells*(U_anoxic_sink + U_other_sink) 
+    for i in cellrange.indices 
+        vars.solutefluxOceanfloor_U[i] -= r_nfloorcells*(vars.U_anoxic[] + vars.U_other[]) 
     end
 
-    return nothing
-end
-
-"""
-    ReactionUReduction
-
-Work-in-progress: calculate U reduction rate in sediment as a fraction of organic carbon remineralization flux `remin_Corg`:
-
-```math
-U_{rate} = remin{\\_}Corg * \\frac{oxUreducelimit}{oxUreducelimit + [O_2]} * \\frac{[U]}{k{\\_}U{\\_}conc}
-```
-
-# Parameters
-$(PARS)
-
-# Methods and Variables
-$(METHODS_DO)
-"""
-Base.@kwdef mutable struct ReactionUReduction{P} <: PB.AbstractReaction
-    base::PB.ReactionBase
-
-    pars::P = PB.ParametersTuple(
-        PB.ParDouble("k_U_conc", 100e-3, units="mol m-3",
-            description="U(VI) concentration to scale reaction rate"),
-        PB.ParDouble("oxUreducelimit", 1e-3, units="mol m-3", 
-            description="oxygen concentration below which U(VI) reduction is inhibited"),
-
-        PB.ParDouble("k_U_D", 1.2, units="per mil",
-            description="fractionation during reduction U(VI) to U(IV)"),
-
-        PB.ParType(PB.AbstractData, "UIsotope", PB.IsotopeLinear,
-            external=true,
-            allowed_values=PB.IsotopeTypes,
-            description="disable / enable uranium isotopes and specify isotope type"),
-    )
-        
-    stoich_reduce_U = PB.RateStoich(
-        PB.VarProp("reduce_U", "mol U yr-1", "U(VI) reduction rate",
-            attributes=(:calc_total=>true,)),
-        ((-1.0, "U::Isotope"), (+1.0, "UIV::Isotope")),
-        deltavarname_eta = ("U_delta", pars.k_U_D),  
-        sms_prefix="",
-        sms_suffix="_sms",
-        processname="redox"
-    )
-    
-end
-
-
-function PB.register_methods!(rj::ReactionUReduction)
- 
-    UIsotopeType = rj.pars.UIsotope[]
-    PB.setfrozen!(rj.pars.UIsotope)
-    @info "register_methods! $(PB.fullname(rj)) UIsotopeType=$(UIsotopeType)"
-
-    vars = [
-        PB.VarDep("remin_Corg", "mol yr-1", "organic carbon remineralization rate"),
-        PB.VarDep("O2_conc", "mol m-3", "O2 concentration"),
-        PB.VarDep("U_conc", "mol m-3", "U(VI) solute concentration"),
-        rj.stoich_reduce_U.ratevartemplate,
-    ]
-
-    PB.add_method_do!(rj, do_U_reduction_rate, (PB.VarList_namedtuple(vars), ) )
-
-    PB.add_method_do!(rj, rj.stoich_reduce_U, isotope_data=UIsotopeType)
-
-    PB.add_method_do_totals_default!(rj)
-
-    PB.add_method_initialize_zero_vars_default!(rj) # for total Variables
-
-    return nothing
-end
-
-
-
-function do_U_reduction_rate(
-    m::PB.ReactionMethod,
-    pars,
-    (vars, ),
-    cellrange::PB.AbstractCellRange,
-    deltat
-)
-
-    @inbounds for i in cellrange.indices
-        oxUreducefac = pars.oxUreducelimit[]/(pars.oxUreducelimit[] + max(vars.O2_conc[i], 0.0))
-        vars.reduce_U[i] = vars.remin_Corg[i]*oxUreducefac*max(vars.U_conc[i]/pars.k_U_conc[], 0.0)     
-    end
-    
     return nothing
 end
 

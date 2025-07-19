@@ -5,4 +5,4 @@
 #### 3 University of Exeter, Exeter, EX4 4QU, UK
 #### 4 School of Earth Sciences and Engineering, and Frontiers Science Center for Critical Earth Material Cycling, Nanjing University, 163 Xianlin Avenue, Nanjing 210023, China
 
-This paper use the EPOC model to reproduce the d13C and d238U isotopic records during 590-5690 Ma which including a newly found d238U negative excursion (an OOE).
+This paper use the EPOC model to reproduce the d13C and d238U isotopic records during 590-560 Ma which including a newly found d238U excursion (an OOE).

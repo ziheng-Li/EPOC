@@ -1,48 +1,50 @@
-# EPOC Model
+# Excitable Phosphorus Oxygen Carbon cycle model (EPOC)
+
+Developed by SJD and ZHL in 2021-2023:
+
+Stuart J. Daines (https://orcid.org/0009-0009-5386-4236, s.daines@exeter.ac.uk)<br>
+Zi-Heng Li, 李子珩 ( https://orcid.org/0000-0003-4145-612X, zihengli@cug.edu.cn) 
+
+SJD and ZHL were both working in Timothy M. Lenton's group. 
+
+EPOC model inherited the most of the biogeochemical reactions from COPSE (*Bergman et al., 2004; Lenton et al., 2018*), while the zero-D ocean domain was replaced by a **column ocean** (see below). 
+
+![The COPSE like model schematic and the column ocean domain](src/Column-ocean.png)
+
+# Build the PALEO environment before you run the scripts
 
 To install (Julia 1.10 required):
 
 Change directory to examples
 
-    julia> ] activate .
+    julia> ] activate
     (examples) pkg> instantiate
     (examples) pkg> add https://github.com/PALEOtoolkit/NLsolve.jl#project_region
     (examples) pkg> precompile
 
 # Examples
 
-## Daines & Li (2024) 'theory paper'
+## Li et al (2025) 'Post-PTB paper'
+
+*Li, Z.H., Lenton, T.M., Zhang, F.F., Chen, Z.Q. and Daines, S.J., 2025. Earth system instability amplified biogeochemical oscillations following the end-Permian mass extinction. Nature Communications, 16(1), p.3703.*
+
+examples/li2025_PTB_NC/
+
+## Li etal (2025) 'Gaskiers glaciation paper'
+
+examples/li2025_Egan_NG/
+
+## Daines & Li (2024) 'Theory paper'
 
 examples/dainesli2024/
 
-
 see examples/dainesli2024/README.md for work-in-progress 
 
-## Li etal (2024) 'Gaskiers paper'
-
-examples/3_P_O_A_U_columns_Ziheng_Egan_Formation/
-
-## Romaniello + shelves configurations
-
-examples/P_O_romglb_shelf_20231218/
 
 # EPOC model code
 
-src/
+src/...
 
-# Notes and TODO
-
-This repo is a partial copy of PALEOexamples\src\OOEOAE_base folder from
-PALEOdev.jl repo, branch OOE_2021_Ziheng_dev2
-
-From:
-    commit 74fa0878494557fd969518c637bec46e6e2e43d9 (HEAD -> OOE_2021_Ziheng_dev2, origin/OOE_2021_Ziheng_dev2)
-    Author: Ziheng Li <zihengli@cug.edu.cn>
-    Date:   Sun Jan 28 15:00:46 2024 +0800
-
-(Daines & Li 2024 PNAS submission)
-
-with some work-in-progress partial updates to later versions
 
 ## Code changes to run outside PALEOdev.jl repo
 

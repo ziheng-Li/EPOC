@@ -1,0 +1,570 @@
+model2:
+    parameters:
+        CIsotope: IsotopeLinear # IsotopeLinear
+        SIsotope: IsotopeLinear # ScalarData
+        UIsotope: IsotopeLinear
+
+        Aconstant: false
+        CGconstant: false
+       
+    domains:        
+
+        fluxAtoLand:
+            
+            reactions:               
+                target:
+                    class: ReactionFluxTarget
+                    parameters:
+                        fluxlist: ["O2", "CO2::CIsotope"]   
+
+        fluxRtoOcean:
+            
+            reactions:
+                target:
+                    class: ReactionFluxTarget                   
+                    parameters:                        
+                        fluxlist: ["DIC::CIsotope", "TAlk", "Ca", "P", "SO4::SIsotope", "U::UIsotope"]
+                
+
+        fluxOceanBurial:
+            
+            reactions:
+                target:
+                    class: ReactionFluxTarget
+                    parameters:
+                        flux_totals: true
+                        fluxlist: ["Ccarb::CIsotope", "Corg::CIsotope", "PYR::SIsotope", "GYP::SIsotope", "P"] # "U_anoxic::UIsotope", "U_other::UIsotope", "Porg", "Pauth", "PFe"
+        
+        fluxSedCrusttoAOcean:
+            
+            reactions:
+                target:
+                    class: ReactionFluxTarget
+                    
+                    parameters:
+                        fluxlist: ["C::CIsotope", "S::SIsotope", "Redox"]
+                                    
+        fluxLandtoSedCrust:
+            
+            reactions:
+                target:
+                    class: ReactionFluxTarget
+                    parameters:
+                        fluxlist: ["Ccarb::CIsotope", "Corg::CIsotope", "GYP::SIsotope", "PYR::SIsotope"] 
+
+        fluxOceanfloor:
+            reactions:
+                solutetarget:
+                    class: ReactionFluxTarget
+                    parameters:
+                        flux_totals: true
+                        target_prefix: soluteflux_
+                        fluxlist: ["S::SIsotope", "U::UIsotope"]
+                
+                        
+        global:
+            # scalar domain
+            
+            reactions:
+
+                const_copseforcings:
+                    class: ReactionScalarConst
+                    parameters:
+                        constnames: ["tforce_constant", "UPLIFT", "W", "VEG", "CPland_relative", "PG", "RHO", "RHOSIL", "F_EPSILON", "DEGASS", "Bforcing"] #  
+                    variable_attributes:
+                        tforce_constant:initial_value:  -600e6 # -1000e6  # set to preCambrian     
+                        UPLIFT:initial_value:           1.0  # COPSE uplift forcing
+                        W:initial_value:                0.0  # COPSE biotic enhancement of land weathering
+                        CPland_relative:initial_value:  1.0  # COPSE land Corg enhancement factor
+                        PG:initial_value:               1.0  # COPSE paleogeographic forcing factor
+                        RHO:initial_value:              1.0
+                        RHOSIL:initial_value:           1.0
+                        F_EPSILON:initial_value:        1.0
+                        DEGASS:initial_value:           1.0  # COPSE DEGASS forcing
+                        Bforcing:initial_value:         1.0  # COPSE Bforcing (multiplier for degassing, 1.0 in late Phanerozoic, 0.75 before ~100Ma)
+
+                temp_global:
+                    class: ReactionGlobalTemperatureBerner
+        
+                    parameters:                        
+                        k_c:                    4.328
+                        k_l:                    7.4
+                    variable_links:
+                        tforce: tforce_constant
+    
+                CIsotopes:
+                    class: ReactionCIsotopes
+                    parameters:
+                        f_cisotopefrac:   copse_base # fixed
+                
+                total_carbon:
+                    
+                    class: ReactionSum
+                    parameters:
+                        vars_to_add: [sedcrust.C, sedcrust.G, atmocean.A]
+                    variable_links:
+                        sum: total_C
+
+                total_redox:
+
+                    class: ReactionSum
+                    parameters:
+                        vars_to_add: [atmocean.O, sedcrust.C, atmocean.A]
+                        component_to_add: 1 # we just want the first component (total) from isotope variables
+                    variable_links:
+                        sum: total_redox
+        
+                
+                Ppulse:
+                    class: ReactionFluxPerturb
+                    parameters:
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [0.0, 0.0]
+                        # P_norm = 3.1e15 mol
+                        # 1e5 yr x 3.1e10 mol yr-1 = 3.1e15 mol
+                    variable_links:
+                        F: ocean.P_sms
+                        FApplied: Ppulse
+                        tforce: global.tforce
+                
+                CO2pulse:
+                    class: ReactionFluxPerturb
+                    parameters:
+                        field_data: external%CIsotope
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [0.0, 0.0]
+                        perturb_deltas: [0.0, 0.0] 
+                    variable_links:
+                        F: atmocean.A_sms
+                        FApplied: CO2pulse
+                        tforce: global.tforce
+                
+                force_SHELF_AREA_NORM:
+                    class: ReactionForceInterp
+                    variable_links:
+                        F: SHELF_AREA_NORM
+                    parameters:
+                        force_times:  [-1e30, 1e30]
+                        force_values: [1.0,   1.0]
+
+                # Bodge to apply scalar RtoOcean fluxes to scalar ocean reservoirs
+                transfer_RtoOcean: # the size is equal the domain = 1
+                    class: ReactionFluxTransfer
+                    parameters:
+                        transfer_matrix:      Identity    
+                        input_fluxes:         fluxRtoOcean.flux_$fluxname$
+                        output_fluxes:        ocean.$fluxname$_sms
+                    variable_links:
+                        output_SO4:           ocean.S_sms     # rename SO4 to S 
+
+                # Bodge to apply per-cell Oceanfloor fluxes to scalar ocean reservoirs
+                transfersolute_fluxOceanfloor:
+                    class: ReactionFluxTransfer
+                    parameters:
+                        transfer_matrix:      Distribute
+                        input_fluxes:         fluxOceanfloor.soluteflux_$fluxname$
+                        output_fluxes:        ocean.$fluxname$_sms
+                    variable_links:
+                        # output_U:            ocean.U_sms
+        
+
+        atmocean:
+            reactions:
+            
+                reservoir_A:
+                    class: ReactionAtmOcean_A
+
+                    variable_attributes:
+                        A:norm_value:           3.193e18    # 3.193e18, 1e19
+                        A:initial_value:        3.193e18    # 3.193e18, 1e19
+                        A:initial_delta:        0.0        # per mil
+                    parameters:
+                        f_atfrac:               quadratic
+                        const:                  external%Aconstant
+                        state_norm:             true
+                    variable_links:
+                        pCO2*:                  atm.pCO2*
+                        # following variables only used if CIsotope = IsotopeLinear
+                        TEMP:                   global.TEMP
+                        D_atmCO2_A:             atm.D_atmCO2_A
+                        CO2_delta:              atm.CO2_delta
+                        D_oceanDIC_A:           ocean.D_oceanDIC_A
+                        DIC_delta:              ocean.DIC_delta
+                  
+                reservoir_O:
+                    class: ReactionAtmOcean_O
+
+                    variable_attributes:
+                        O:norm_value:           3.7e19 # PAL
+                        O:initial_value:        3.7e19
+                    variable_links:
+                        pO2*:                   atm.pO2*     
+
+                transfer_AtoLand:
+                    class: ReactionFluxTransfer
+                    parameters:
+                        input_fluxes:         fluxAtoLand.flux_$fluxname$
+                        output_fluxes:        $fluxname$_sms
+                        transfer_multiplier:  -1.0
+                    variable_links:
+                        output_O2:            O_sms   # rename
+                        output_CO2:           A_sms  
+                
+                transfer_RtoOcean:
+                    class: ReactionFluxTransfer
+                    parameters:
+                        transfer_matrix:      Distribute
+                        input_fluxes:         fluxRtoOcean.flux_$fluxname$
+                        output_fluxes:        $fluxname$_sms                       
+                    variable_links:                        
+                        output_DIC:           A_sms    
+                
+                # transfer_Oceanfloor:
+                #     class: ReactionFluxTransfer
+                #     parameters:
+                #         transfer_matrix:      Distribute
+                #         input_fluxes:         fluxOceanfloor.soluteflux_$fluxname$
+                #         output_fluxes:        $fluxname$_sms
+                #         transfer_multiplier:  1.0              
+                #     variable_links:                        
+                #         output_DIC:           A_sms  
+
+                # issue here, add this reaction then the pCO2 increase to 50
+                transfer_SedCrusttoAOcean:
+                    class: ReactionFluxTransfer
+                    parameters:
+                        transfer_multiplier:  1.0 
+                        input_fluxes:         fluxSedCrusttoAOcean.flux_$fluxname$
+                        output_fluxes:        $fluxname$_sms                      
+                    variable_links:                        
+                        output_C:             A_sms                                                      
+                        output_Redox:         O_sms
+                
+                # # ScalarData != IsotopeLinear
+                # atmocean_Redox_Budget:
+                #     class: ReactionSum
+
+                #     parameters:
+                #         vars_to_add: [fluxOceanBurial.flux_total_Corg, -1.0*fluxAtoLand.flux_O2, fluxSedCrusttoAOcean.flux_Redox]
+                #     variable_links:
+                #         sum: Redox_input
+
+                # atmocean_C_Budget:
+                #     class: ReactionSum
+
+                #     parameters:
+                #         vars_to_add: [-1.0*fluxOceanBurial.flux_total_Corg, -1.0*fluxOceanBurial.flux_total_Ccarb,  fluxSedCrusttoAOcean.flux_C, land.carbw, land.oxidw]
+                #     variable_links:
+                #         sum: C_input
+                
+        atm: 
+            reactions:
+
+        land:
+            reactions:
+                const_copselandforcings:
+                    class: ReactionScalarConst
+                    parameters:
+                        constnames: ["BA_AREA", "GRAN_AREA", "CARB_AREA", "VEG"] # 
+                    variable_attributes:
+                        # all these are unused here
+                        BA_AREA:initial_value:           1.0  # fraction basalt area
+                        GRAN_AREA:initial_value:         1.0  #
+                        CARB_AREA:initial_value:         1.0
+                        VEG:initial_value:               1.0  # COPSE VEG biota 
+
+
+                land_weathering:
+                    class: ReactionLandWeatheringRates
+                    parameters:                        
+                        f_act_energies          : single # Baseline configuration - granite and basalt have same activation energy                        
+                        f_co2fert               : original # Baseline CO2 fertilisation effect in weathering function
+                        f_oxwO                  : PowerO2
+                        f_oxw_a                 : 0.5               # 'PowerO2' only
+                        # f_oxw_halfsat                             # 'SatO2' only                        
+                        f_vegweath              : original   # Baseline configuration for vegetation dependence of weathering
+                        k15_plantenhance        : 0.15              #  weathering enhancement factor prior to vascular plant colonisation
+                        
+                land_fluxes:
+                    class: ReactionLandWeatheringFluxes
+                    parameters:                        
+                        # silicate weathering
+                        f_gran_link_u           : 'original'  # granite weathering response to uplift changes
+                        f_bas_link_u            : 'yes'        # basalt weathering response to uplift changes
+                        k_basfrac               : 0.35         # fraction of silw that is basaltic at present [effectively unused if same activation energies]
+                        # balance constant degassing for modern steady-state
+                        k_basw                  : 2.3275e12 # COPSE (Bergman 2004) 2.21e12    
+                        k_granw                 : 4.3225e12 # COPSE (Bergman 2004) 4.39e12
+
+                        # P weathering                        
+                        f_p_kinetics            : 'no'          # Baseline configuration - apatite kinetics assumed to follow host rock                          
+                        f_p_apportion           : 'no'          # Baseline configuration - granite and basalt have same P content
+                        
+                        # k_P                     : 2.15        # enrichment of P:(Ca+Mg) in granite versus basalt
+                        k10_phosw               : 39e9       
+                        k_Psilw                 : 0.0 # 0.166667    # 2/12
+                        k_Pcarbw                : 0.0 # 0.416667    # (5/12)
+                        k_Poxidw                : 0.0 # 0.416667    # (5/12)
+                        k_Psedw                 : 0.0
+
+                        # Carbonate weathering
+                        f_carb_link_u           : 'yes'             # linear dependence on uplift
+                        f_carbwC                : 'Cindep'          # dependence on carbonate C reservoir, options 'Cindep' (original)
+                        k14_carbw               : 13.35e12          #  COPSE (Bergman 2004) carbonate weathering
+
+                        # Oxidative weathering
+                        f_oxwG                  : Gprop         # 'forced'          # include scaling with ORG_AREA
+                        k17_oxidw               : 7.75e12       # COPSE (Bergman 2004) 6e12 # mol O2 yr-1
+
+                        # no Sulphur weathering
+                        enableS:    False # no S weathering
+                       
+                        # no organic carbon burial
+                        f_locb                  : 'original'                        
+                        CPland0                 : 1000.0        #  new constant present day C/P land burial
+                        k5_locb                 : 4.5e12           #  land organic carbon burial (mol/yr)                  
+                        k11_landfrac            : 0.0           #  fraction of weath P buried on land - set from k5_locb and CPland0
+                
+                U_land:
+                    class: ReactionULand
+                    parameters:
+                        k_U_total_silw: 40e6            # mol U yr-1 riverine flux 
+                        k_U_riv_delta:  -0.4           # -0.26 d238U/235U composition of riverine flux
+
+                P_weathering:
+                    class: ReactionFluxPerturb
+                    parameters:
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [39e9, 39e9]   # mol P yr-1                    
+                    variable_links:
+                        F: fluxRtoOcean.flux_P
+                        FApplied: P_weath
+                        tforce: global.tforce
+
+                S_pyrite_weathering:
+                    # pyrite weathering uses two Reactions: this one to define the S flux, then a ReactionFluxToComponents to 
+                    # generate riverine SO4 input and atmospheric O2 consumption
+                    class: ReactionFluxPerturb
+                    parameters:
+                        field_data: external%SIsotope
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [1e12, 1e12]   # mol S yr-1
+                        perturb_deltas: [5.0, 5.0]
+                    variable_links:
+                        F: flux_S_pyrite_weath
+                        FApplied: S_pyrite_weath
+                        tforce: global.tforce
+
+                S_pyrite_weathering_distribute:
+                    # convert S_pyrite_weath flux into SO4 riverine flux and atmospheric O2 consumption
+                    class: ReactionFluxToComponents
+                    parameters:
+                        field_data: external%SIsotope
+                        outputflux_prefix: flux_                   
+                        outputflux_names: ["SO4::Isotope", "O2"]
+                        #                  
+                        outputflux_stoich: [1.0, 2.0]   # NB sign: fluxAtoLand so +ve for O2 consumption
+                    variable_links:
+                        inputflux:  flux_S_pyrite_weath
+                        flux_SO4:   fluxRtoOcean.flux_SO4
+                        flux_O2:    fluxAtoLand.flux_O2
+
+                U_weathering:
+                    class: ReactionFluxPerturb
+                    parameters:
+                        field_data: external%UIsotope
+                        perturb_times: [-1e30, 1e30]
+                        perturb_totals: [0.0, 0.0]   # mol U yr-1
+                        perturb_deltas: [-0.26, -0.26] # d238U/235U composition of riverine flux
+
+                    variable_links:
+                        F: fluxRtoOcean.flux_U
+                        FApplied: U_weath
+                        tforce: global.tforce
+
+
+        sedcrust:
+
+            reactions:
+                # C G not const, 
+                reservoir_C:
+                    class: ReactionReservoirScalar
+                    parameters:
+                        field_data: external%CIsotope
+                        const: external%CGconstant
+                    variable_links:
+                        R*: C*
+                    variable_attributes:
+                        R:norm_value:           5e21
+                        R:initial_value:        5e21
+                        R:initial_delta:        1.0 # per mil 
+
+                reservoir_G:
+                    class: ReactionReservoirScalar
+                    parameters:
+                        field_data: external%CIsotope
+                        const: external%CGconstant
+                    variable_links:
+                        R*: G*
+                    variable_attributes:
+                        R:norm_value:           1.25e21
+                        R:initial_value:        1.25e21
+                        R:initial_delta:        -26.0 # per mil
+                
+                sedcrust_copse:
+                    class: ReactionSedCrustCOPSE
+                    parameters:
+                        enableS:                false
+                        # f_ccdeg:                original   # options 'noB' original
+                        f_ocdeg:                O2indep # O2copsecrashprevent
+                        # COPSE Bergman (2004) modern degassing
+                        # NB: Bforcing is (still) at modern value of 1.0 not 0.75 so not exactly what COPSE would produce at
+                        # -600e6 yr even with DEGASS = 1
+                        k12_ccdeg:              6.65e12 # COPSE (Bergman 2004)
+                        k13_ocdeg:              1.25e12 # COPSE (Bergman 2004)
+                
+                transfer_OceanBurial:
+                    class: ReactionFluxTransfer
+                    parameters:
+                        transfer_matrix:      Distribute
+                        input_fluxes:         fluxOceanBurial.flux_$fluxname$
+                        output_fluxes:        $fluxname$_sms                                  
+                    variable_links:
+                        output_Corg:          G_sms            # fix naming Corg = G                        
+                        output_Ccarb:         C_sms            # fix naming Ccarb = C  
+                        #output_Sr:            Sr_sed_sms            # fix naming
+
+                transfer_LandtoSedCrust:
+                    class: ReactionFluxTransfer
+                    parameters:
+                        input_fluxes:         fluxLandtoSedCrust.flux_$fluxname$
+                        output_fluxes:        $fluxname$_sms
+                    variable_links:
+                        output_Corg:            G_sms            # fix naming Corg = G                        
+                        output_Ccarb:           C_sms            # fix naming Ccarb = C
+                        #output_Sr:              Sr_sed_sms            # fix naming
+
+
+        ocean:
+            # if we need to include the fepb and capb then we need to include the marinebiota to calculate the newp, newp_relative
+
+            reactions:
+                reservoir_P:
+                    class: ReactionReservoirScalar
+                   
+                    variable_links:
+                        R*: P*
+                    variable_attributes:
+                        R:norm_value:           3.1e15
+                        R:initial_value:        3.1e15
+                
+                reservoir_U:
+                    class: ReactionReservoirScalar
+                    parameters:
+                        field_data: external%UIsotope
+                    
+                    variable_links:
+                        R*: U*
+                    variable_attributes:
+                        R:norm_value:           1.9e13
+                        R:initial_value:        1.9e13
+                        R:initial_delta:        -0.36  # per mil
+
+                reservoir_S:
+                    class: ReactionReservoirScalar
+                    parameters:
+                        field_data: external%SIsotope
+                    
+                    variable_links:
+                        R*: S*
+                    variable_attributes:
+                        R:norm_value:           4e19   # modern SO4 
+                        R:initial_value:        1.35e18 # 1 mM SO4
+                        R:initial_delta:        5.0  # per mil
+                
+                force_kO2U:  # change the sharpness along the time
+                    class: ReactionForceInterp
+                    variable_links:
+                        F: kO2U
+                        tforce: global.tforce
+                    parameters:
+                        force_times:  [-1e30, 1e30]
+                        force_values: [1.0, 1.0]    
+
+                force_corg_bf:  # the multiplier of a mutiplier
+                    class: ReactionForceInterp
+                    variable_links:
+                        F: corg_bf
+                        tforce: global.tforce
+                    parameters:
+                        force_times:  [-1e30, 1e30]
+                        force_values: [1.0, 1.0]   
+                
+                
+                oceanburial_columns:
+                    class: ReactionOceanBurialColumn
+                    parameters:
+                        ncols: 100  # number of ocean columns
+                        k_mocb: 4.5e12      
+                        corg_burial_fac: 1.0 # multiplier for marine organic carbon burial rate (and C:P burial ratio)
+                        use_shelf_area_norm: true # multiply Corg and P burial by global.SHELF_AREA_NORM
+
+                        k_anox: 1000.0 # anoxia function sharpness
+                        k_oxic: 115.4 # local C:P burial ratio oxic
+                        k_anoxic: 461.6  # local C:P burial ratio anoxic
+                        k_O2_U_min: 0.49 # minimum normalized O2 utilisation
+                        k_O2_U_max: 0.51 # maximum normalized O2 utilisation"), 
+                        anoxic_threshold: 0.975
+                    
+                    # Ziheng missed to link DIS_sms -= local_Corgburial !
+                    # Link DIC_sms to A_sms, then A_sms -= local_Corgburial
+                    variable_links: 
+                        DIC_sms: atmocean.A_sms
+
+
+                gyp_burial:
+                    # gypsum burial represented as \propto [S]
+                    class: ReactionRestore
+                    parameters:
+                        field_data: external%SIsotope
+                        RequiredLevel: 0.0
+                        RequiredDelta: 0.0
+                        trestore: 16e6 # yr, COPSE Reloaded modern values (4e19 mol) / (2.5e12 mol yr-1)
+                    variable_links:
+                        WatchLevel: S
+                        RestoringFlux: S_sms
+
+        oceansurface:
+            reactions:      
+                #bodge, two transfer reactions been moved to boundary domain          
+            
+        oceanfloor:
+            reactions:
+                carbburial: 
+                    class: ReactionCarbBurialAlk_dev
+                    variable_links:                        
+                        DIC_sms: atmocean.A_sms  
+
+                pyrite_burial:
+                    class: ReactionPyriteBurial_dev
+                    parameters:
+                        add_oxygen: true  # include net oxygen production
+                        k_pyrite_D: -40.0
+                        k_SC_ratio: 6.63 # mol/mol 1.0/4.5*29.85  1e12 mol yr-1 pyrite burial at 4.5e12 mol yr-1 Corg burial, 1 mM S 
+
+
+                U_oceanfloor:
+                    class: ReactionUOceanfloor_dev
+                    parameters:
+                        k_U_anoxic_D:   0.5     # per mil anoxic sink fractionation
+                        k_U_other_D:    0.005   # per mil other sink fractionation
+    
+                        k_U_anoxic:     6.0e6   # mol U yr-1 present-day anoxic sink flux
+                        k_U_other:      34.0e6  # mol U yr-1 present-day other sink flux
+    
+                        k_anox_0:       0.0033  # present-day ocean anoxia fraction
+
+                    variable_links:
+                        ANOX:       anoxia_burial_frac   
+
+
